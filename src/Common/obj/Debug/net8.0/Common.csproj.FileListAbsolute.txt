@@ -1,0 +1,11 @@
+D:\IT\Concept_Area\TradingMvp\src\Common\bin\Debug\net8.0\Common.deps.json
+D:\IT\Concept_Area\TradingMvp\src\Common\bin\Debug\net8.0\Common.dll
+D:\IT\Concept_Area\TradingMvp\src\Common\bin\Debug\net8.0\Common.pdb
+D:\IT\Concept_Area\TradingMvp\src\Common\obj\Debug\net8.0\Common.GeneratedMSBuildEditorConfig.editorconfig
+D:\IT\Concept_Area\TradingMvp\src\Common\obj\Debug\net8.0\Common.AssemblyInfoInputs.cache
+D:\IT\Concept_Area\TradingMvp\src\Common\obj\Debug\net8.0\Common.AssemblyInfo.cs
+D:\IT\Concept_Area\TradingMvp\src\Common\obj\Debug\net8.0\Common.csproj.CoreCompileInputs.cache
+D:\IT\Concept_Area\TradingMvp\src\Common\obj\Debug\net8.0\Common.dll
+D:\IT\Concept_Area\TradingMvp\src\Common\obj\Debug\net8.0\refint\Common.dll
+D:\IT\Concept_Area\TradingMvp\src\Common\obj\Debug\net8.0\Common.pdb
+D:\IT\Concept_Area\TradingMvp\src\Common\obj\Debug\net8.0\ref\Common.dll
