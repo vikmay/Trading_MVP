@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "BrmUCExdFFc=",
+  "dgSpecHash": "ZgH+BZzw1Us=",
   "success": true,
-  "projectFilePath": "D:\\IT\\Concept_Area\\TradingMvp\\src\\Gateway\\Gateway.csproj",
+  "projectFilePath": "D:\\IT\\CA\\TradingMvp\\src\\Gateway\\Gateway.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\larvo.ASUS_FLIP_14\\.nuget\\packages\\microsoft.aspnetcore.openapi\\8.0.16\\microsoft.aspnetcore.openapi.8.0.16.nupkg.sha512",
     "C:\\Users\\larvo.ASUS_FLIP_14\\.nuget\\packages\\microsoft.extensions.apidescription.server\\6.0.5\\microsoft.extensions.apidescription.server.6.0.5.nupkg.sha512",

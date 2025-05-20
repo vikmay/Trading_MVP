@@ -3,24 +3,17 @@ WORKDIR /app
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
-
-# Копіюємо проекти для restore
-COPY Common/Common.csproj Common/
 COPY Collector/Collector.csproj Collector/
+COPY Common/Common.csproj Common/
 RUN dotnet restore Collector/Collector.csproj
 
-# Копіюємо весь код
-COPY Common/ Common/
-COPY Collector/ Collector/
-
+COPY Collector/ ./Collector/
+COPY Common/ ./Common/
 WORKDIR /src/Collector
-RUN dotnet build Collector.csproj -c Release -o /app/build
-
-FROM build AS publish
-WORKDIR /src/Collector
-RUN dotnet publish Collector.csproj -c Release -o /app/publish
+RUN dotnet build -c Release -o /app/build
+RUN dotnet publish -c Release -o /app/publish
 
 FROM base AS final
 WORKDIR /app
-COPY --from=publish /app/publish .
+COPY --from=build /app/publish .
 ENTRYPOINT ["dotnet", "Collector.dll"]

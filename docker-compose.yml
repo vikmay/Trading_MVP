@@ -1,125 +1,211 @@
-version: '3.8'
+# docker-compose.yml
+version: '3.9'
 
+###############################################################################
+#                               N E T W O R K S                               #
+###############################################################################
+networks:
+    trading-network:
+        driver: bridge
+
+###############################################################################
+#                               S E R V I C E S                               #
+###############################################################################
 services:
+    # ────────────────────────────────────────────────────────────────────────────
+    # ▶ Exchange stub – simple WebSocket/REST mock
+    # ────────────────────────────────────────────────────────────────────────────
     exchange_stub:
         build:
             context: ./src
             dockerfile: ExchangeStub/Dockerfile
-        ports:
-            - '7001:8080'
+        image: exchange_stub:local
+        ports: ['7001:8081']
         environment:
-            ASPNETCORE_URLS: http://+:8080
-        networks:
-            - trading-network
+            ASPNETCORE_URLS: http://+:8081
         healthcheck:
-            test: ['CMD', 'curl', '-f', 'http://localhost:8080/healthz']
+            test: ['CMD', 'curl', '-fsS', 'http://localhost:8081/healthz']
             interval: 30s
             retries: 3
             start_period: 5s
+        networks: [trading-network]
 
-    collector:
-        image: mcr.microsoft.com/dotnet/runtime:8.0
-        container_name: collector
-        build:
-            context: ./src
-            dockerfile: Collector/Dockerfile
-        environment:
-            - EXCHANGE_WS_URL=ws://exchange_stub:8080/ws/ticker?symbol=BTCUSDT
-            # Add Kafka bootstrap server for later steps
-            - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-        networks:
-            - trading-network
-        depends_on:
-            - gateway
-        healthcheck:
-            test: ['CMD', 'curl', '-f', 'http://localhost:5000/healthz']
-            interval: 30s
-            retries: 3
-            start_period: 5s
-
-    gateway:
-        image: mcr.microsoft.com/dotnet/aspnet:8.0
-        container_name: gateway
-        build:
-            context: ./src
-            dockerfile: Gateway/Dockerfile
-        ports:
-            - '8080:8080'
-        environment:
-            - ASPNETCORE_URLS=http://+:8080
-            # Add RabbitMQ host for later steps
-            - RABBITMQ_HOST=rabbitmq
-        networks:
-            - trading-network
-        healthcheck:
-            test: ['CMD', 'curl', '-f', 'http://localhost:5000/healthz']
-            interval: 30s
-            retries: 3
-            start_period: 5s
-
-    webui:
-        build:
-            context: ./webui
-        container_name: webui
-        ports:
-            - '80:80'
-        networks:
-            - trading-network
-        depends_on:
-            - gateway
-        environment:
-            - REACT_APP_SIGNALR_URL=http://gateway:8080/hub/market
-
-    # --- New services below ---
-
+    # ────────────────────────────────────────────────────────────────────────────
+    # ▶ ZooKeeper
+    # ────────────────────────────────────────────────────────────────────────────
     zookeeper:
         image: bitnami/zookeeper:3.8
         container_name: zookeeper
-        ports:
-            - '2181:2181'
+        ports: ['2181:2181']
         environment:
-            - ALLOW_ANONYMOUS_LOGIN=yes
-        networks:
-            - trading-network
+            ALLOW_ANONYMOUS_LOGIN: 'yes'
+            # (optional) slim heap for WSL-2
+            JVMFLAGS: '-Xms128m -Xmx256m'
+        healthcheck:
+            # `mntr` is whitelisted out-of-the-box, unlike `ruok`
+            test:
+                [
+                    'CMD-SHELL',
+                    'echo mntr | nc -w2 localhost 2181 | grep -q zk_version',
+                ]
+            interval: 15s
+            retries: 6
+            start_period: 40s
+        networks: [trading-network]
 
+    # ────────────────────────────────────────────────────────────────────────────
+    # ▶ Kafka broker (single-node)
+    # ────────────────────────────────────────────────────────────────────────────
     kafka:
         image: bitnami/kafka:3.7
         container_name: kafka
-        ports:
-            - '9092:9092'
+        ports: ['9092:9092']
         environment:
-            - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
-            - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
-            - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092
-            - ALLOW_PLAINTEXT_LISTENER=yes
+            KAFKA_CFG_ZOOKEEPER_CONNECT: zookeeper:2181
+            KAFKA_CFG_LISTENERS: PLAINTEXT://:9092
+            KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+            ALLOW_PLAINTEXT_LISTENER: 'yes'
         depends_on:
-            - zookeeper
-        networks:
-            - trading-network
+            zookeeper:
+                condition: service_healthy
+        healthcheck:
+            test: ['CMD-SHELL', 'bash -c "echo > /dev/tcp/localhost/9092"']
+            interval: 10s
+            retries: 10
+        networks: [trading-network]
 
+    # ────────────────────────────────────────────────────────────────────────────
+    # ▶ RabbitMQ (management UI)
+    # ────────────────────────────────────────────────────────────────────────────
     rabbitmq:
         image: rabbitmq:3-management
         container_name: rabbitmq
-        ports:
-            - '5672:5672' # AMQP protocol
-            - '15672:15672' # Management UI
+        ports: ['5672:5672', '15672:15672']
         environment:
-            - RABBITMQ_DEFAULT_USER=guest
-            - RABBITMQ_DEFAULT_PASS=guest
-        networks:
-            - trading-network
+            RABBITMQ_DEFAULT_USER: guest
+            RABBITMQ_DEFAULT_PASS: guest
+        healthcheck:
+            test: ['CMD', 'rabbitmq-diagnostics', '-q', 'ping']
+            interval: 10s
+            retries: 10
+        networks: [trading-network]
 
+    # ────────────────────────────────────────────────────────────────────────────
+    # ▶ Gateway – SignalR hub (ASP.NET Core 8)
+    # ────────────────────────────────────────────────────────────────────────────
+    gateway:
+        build:
+            context: ./src
+            dockerfile: Gateway/Dockerfile
+        image: gateway:local
+        container_name: gateway
+        ports: ['8080:8080']
+        environment:
+            ASPNETCORE_URLS: http://+:8080
+            RABBIT_HOST: rabbitmq
+        depends_on:
+            rabbitmq:
+                condition: service_healthy
+        healthcheck:
+            test: ['CMD', 'curl', '-fsS', 'http://localhost:8080/healthz']
+            interval: 30s
+            retries: 3
+            start_period: 5s
+        networks: [trading-network]
+
+    # ────────────────────────────────────────────────────────────────────────────
+    # ▶ Collector – WS → Kafka
+    # ────────────────────────────────────────────────────────────────────────────
+    collector:
+        build:
+            context: ./src
+            dockerfile: Collector/Dockerfile
+        image: collector:local
+        container_name: collector
+        environment:
+            ASPNETCORE_URLS: http://+:8080
+            EXCHANGE_WS_URL: ws://exchange_stub:8081/ws/ticker?symbol=BTCUSDT
+            KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+        depends_on:
+            kafka:
+                condition: service_healthy
+            gateway:
+                condition: service_started
+        healthcheck:
+            test: ['CMD', 'curl', '-fsS', 'http://localhost:8080/healthz']
+            interval: 30s
+            retries: 3
+            start_period: 5s
+        networks: [trading-network]
+
+    # ────────────────────────────────────────────────────────────────────────────
+    # ▶ Normaliser – Kafka → Kafka (clean)
+    # ────────────────────────────────────────────────────────────────────────────
+    normaliser:
+        build:
+            context: ./src
+            dockerfile: Normaliser/Dockerfile
+        image: normaliser:local
+        environment:
+            ASPNETCORE_URLS: http://+:8080
+            KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+        depends_on:
+            kafka:
+                condition: service_healthy
+        networks: [trading-network]
+
+    # ────────────────────────────────────────────────────────────────────────────
+    # ▶ Bridge – Kafka → RabbitMQ fan-out
+    # ────────────────────────────────────────────────────────────────────────────
+    bridge:
+        build:
+            context: ./src
+            dockerfile: Bridge/Dockerfile
+        image: bridge:local
+        container_name: bridge
+        ports: ['8083:8083']
+        environment:
+            ASPNETCORE_URLS: http://+:8083
+            KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+            RABBIT_HOST: rabbitmq
+        depends_on:
+            kafka:
+                condition: service_healthy
+            rabbitmq:
+                condition: service_healthy
+        healthcheck:
+            test: ['CMD', 'curl', '-fsS', 'http://localhost:8083/healthz']
+            interval: 30s
+            retries: 3
+            start_period: 15s
+        networks: [trading-network]
+
+    # ────────────────────────────────────────────────────────────────────────────
+    # ▶ Kafdrop – Kafka UI
+    # ────────────────────────────────────────────────────────────────────────────
     kafdrop:
         image: obsidiandynamics/kafdrop
-        ports:
-            - '9000:9000'
+        container_name: kafdrop
+        ports: ['9000:9000']
         environment:
-            - KAFKA_BROKER_CONNECT=kafka:9092
+            KAFKA_BROKERCONNECT: kafka:9092
         depends_on:
-            - kafka
-        networks:
-            - trading-network
+            kafka:
+                condition: service_healthy
+        networks: [trading-network]
 
-networks:
-    trading-network:
-        driver: bridge
+    # ────────────────────────────────────────────────────────────────────────────
+    # ▶ React front-end
+    # ────────────────────────────────────────────────────────────────────────────
+    webui:
+        build:
+            context: ./webui
+        image: webui:local
+        container_name: webui
+        ports: ['80:80']
+        environment:
+            REACT_APP_SIGNALR_URL: http://gateway:8080/hub/market
+        depends_on:
+            gateway:
+                condition: service_started
+        networks: [trading-network]

@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\IT\\Concept_Area\\TradingMvp\\src\\Collector\\Collector.csproj": {}
+    "D:\\IT\\CA\\TradingMvp\\src\\Collector\\Collector.csproj": {}
   },
   "projects": {
-    "D:\\IT\\Concept_Area\\TradingMvp\\src\\Collector\\Collector.csproj": {
+    "D:\\IT\\CA\\TradingMvp\\src\\Collector\\Collector.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\IT\\Concept_Area\\TradingMvp\\src\\Collector\\Collector.csproj",
+        "projectUniqueName": "D:\\IT\\CA\\TradingMvp\\src\\Collector\\Collector.csproj",
         "projectName": "Collector",
-        "projectPath": "D:\\IT\\Concept_Area\\TradingMvp\\src\\Collector\\Collector.csproj",
+        "projectPath": "D:\\IT\\CA\\TradingMvp\\src\\Collector\\Collector.csproj",
         "packagesPath": "C:\\Users\\larvo.ASUS_FLIP_14\\.nuget\\packages\\",
-        "outputPath": "D:\\IT\\Concept_Area\\TradingMvp\\src\\Collector\\obj\\",
+        "outputPath": "D:\\IT\\CA\\TradingMvp\\src\\Collector\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\larvo.ASUS_FLIP_14\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -26,8 +26,8 @@
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "D:\\IT\\Concept_Area\\TradingMvp\\src\\Common\\Common.csproj": {
-                "projectPath": "D:\\IT\\Concept_Area\\TradingMvp\\src\\Common\\Common.csproj"
+              "D:\\IT\\CA\\TradingMvp\\src\\Common\\Common.csproj": {
+                "projectPath": "D:\\IT\\CA\\TradingMvp\\src\\Common\\Common.csproj"
               }
             }
           }
@@ -41,12 +41,17 @@
           "enableAudit": "true",
           "auditLevel": "low",
           "auditMode": "direct"
-        }
+        },
+        "SdkAnalysisLevel": "9.0.300"
       },
       "frameworks": {
         "net8.0": {
           "targetAlias": "net8.0",
           "dependencies": {
+            "Confluent.Kafka": {
+              "target": "Package",
+              "version": "[2.10.0, )"
+            },
             "Microsoft.Extensions.Hosting": {
               "target": "Package",
               "version": "[8.0.0, )"
@@ -72,18 +77,18 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.409/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.300/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
-    "D:\\IT\\Concept_Area\\TradingMvp\\src\\Common\\Common.csproj": {
+    "D:\\IT\\CA\\TradingMvp\\src\\Common\\Common.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\IT\\Concept_Area\\TradingMvp\\src\\Common\\Common.csproj",
+        "projectUniqueName": "D:\\IT\\CA\\TradingMvp\\src\\Common\\Common.csproj",
         "projectName": "Common",
-        "projectPath": "D:\\IT\\Concept_Area\\TradingMvp\\src\\Common\\Common.csproj",
+        "projectPath": "D:\\IT\\CA\\TradingMvp\\src\\Common\\Common.csproj",
         "packagesPath": "C:\\Users\\larvo.ASUS_FLIP_14\\.nuget\\packages\\",
-        "outputPath": "D:\\IT\\Concept_Area\\TradingMvp\\src\\Common\\obj\\",
+        "outputPath": "D:\\IT\\CA\\TradingMvp\\src\\Common\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\larvo.ASUS_FLIP_14\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -109,7 +114,8 @@
           "enableAudit": "true",
           "auditLevel": "low",
           "auditMode": "direct"
-        }
+        },
+        "SdkAnalysisLevel": "9.0.300"
       },
       "frameworks": {
         "net8.0": {
@@ -130,7 +136,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.409/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.300/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
