@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\IT\\CA\\TradingMvp\\src\\Common\\Common.csproj": {}
+    "d:\\IT\\CA\\TradingMvp\\src\\Common\\Common.csproj": {}
   },
   "projects": {
-    "D:\\IT\\CA\\TradingMvp\\src\\Common\\Common.csproj": {
+    "d:\\IT\\CA\\TradingMvp\\src\\Common\\Common.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\IT\\CA\\TradingMvp\\src\\Common\\Common.csproj",
+        "projectUniqueName": "d:\\IT\\CA\\TradingMvp\\src\\Common\\Common.csproj",
         "projectName": "Common",
-        "projectPath": "D:\\IT\\CA\\TradingMvp\\src\\Common\\Common.csproj",
+        "projectPath": "d:\\IT\\CA\\TradingMvp\\src\\Common\\Common.csproj",
         "packagesPath": "C:\\Users\\larvo.ASUS_FLIP_14\\.nuget\\packages\\",
-        "outputPath": "D:\\IT\\CA\\TradingMvp\\src\\Common\\obj\\",
+        "outputPath": "d:\\IT\\CA\\TradingMvp\\src\\Common\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\larvo.ASUS_FLIP_14\\AppData\\Roaming\\NuGet\\NuGet.Config"

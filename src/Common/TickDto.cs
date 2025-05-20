@@ -1,5 +1,10 @@
 namespace Common
 {
-    public record struct RawTick(string Symbol, decimal Bid, decimal Ask, long TsMs);
-    public record struct UiTick(string Symbol, decimal Bid, decimal Ask, decimal Mid, decimal SpreadPct, long TsMs);
+    public record RawTick
+    {
+        public string Symbol { get; init; } = string.Empty;
+        public double Bid { get; init; }
+        public double Ask { get; init; }
+        public long TsMs { get; init; }
+    }
 }

@@ -5,172 +5,104 @@ using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using Common;
 
-namespace Normaliser
+namespace Normaliser;
+
+public class Worker : BackgroundService
 {
-    public class Worker : BackgroundService
+    private readonly ILogger<Worker> _logger;
+    private readonly IConsumer<string, string> _consumer;
+    private readonly IProducer<string, string> _producer;
+
+    private const string INPUT_TOPIC = "ticks.raw";
+    private const string OUTPUT_TOPIC = "ticks.norm";
+    private const string CONSUMER_GROUP = "normaliser";
+
+    public Worker(ILogger<Worker> logger, IConfiguration cfg)
     {
-        private readonly ILogger<Worker> _logger;
-        private readonly IConfiguration _configuration;
-        private readonly string _kafkaBootstrapServers;
-        private readonly IConsumer<string, string> _consumer;
-        private readonly IProducer<string, string> _producer;
-        private const string INPUT_TOPIC = "ticks.raw";
-        private const string OUTPUT_TOPIC = "ticks.norm";
-        private const string CONSUMER_GROUP = "normaliser";
-        private const string EXCHANGE_ID = "EXA"; // Example exchange identifier
+        _logger = logger;
 
-        public Worker(ILogger<Worker> logger, IConfiguration configuration)
+        var bootstrap = cfg["KAFKA_BOOTSTRAP_SERVERS"] ?? "kafka:9092";
+
+        /* ---------- Kafka consumer ---------- */
+        var cConf = new ConsumerConfig
         {
-            _logger = logger;
-            _configuration = configuration;
-            _kafkaBootstrapServers = _configuration["KAFKA_BOOTSTRAP_SERVERS"] ?? "kafka:9092";
+            BootstrapServers = bootstrap,
+            GroupId = CONSUMER_GROUP,
+            AutoOffsetReset = AutoOffsetReset.Earliest,
+            EnableAutoCommit = false
+        };
+        _consumer = new ConsumerBuilder<string, string>(cConf).Build();
 
-            // Configure Consumer
-            var consumerConfig = new ConsumerConfig
-            {
-                BootstrapServers = _kafkaBootstrapServers,
-                GroupId = CONSUMER_GROUP,
-                AutoOffsetReset = AutoOffsetReset.Earliest,
-                EnableAutoCommit = false // Manual commit for better control
-            };
+        /* ---------- Kafka producer ---------- */
+        var pConf = new ProducerConfig
+        {
+            BootstrapServers = bootstrap,
+            EnableIdempotence = true,
+            Acks = Acks.All
+        };
+        _producer = new ProducerBuilder<string, string>(pConf).Build();
 
-            // Configure Producer
-            var producerConfig = new ProducerConfig
-            {
-                BootstrapServers = _kafkaBootstrapServers,
-                EnableIdempotence = true,
-                Acks = Acks.All
-            };
+        _logger.LogInformation("Normaliser wired to Kafka @ {Bootstrap}", bootstrap);
+    }
 
-            _consumer = new ConsumerBuilder<string, string>(consumerConfig).Build();
-            _producer = new ProducerBuilder<string, string>(producerConfig).Build();
+    /* ------------------------------------------------------------------ */
+    protected override async Task ExecuteAsync(CancellationToken stop)
+    {
+        _consumer.Subscribe(INPUT_TOPIC);
+        _logger.LogInformation("Subscribed to {Topic}", INPUT_TOPIC);
 
-            _logger.LogInformation("Normaliser initialized with bootstrap servers: {Servers}", 
-                _kafkaBootstrapServers);
-        }
-
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        while (!stop.IsCancellationRequested)
         {
             try
             {
-                _consumer.Subscribe(INPUT_TOPIC);
-                _logger.LogInformation("Subscribed to topic: {Topic}", INPUT_TOPIC);
+                var cr = _consumer.Consume(stop);
+                if (cr?.Message == null) continue;
 
-                while (!stoppingToken.IsCancellationRequested)
-                {
-                    try
-                    {
-                        var consumeResult = _consumer.Consume(stoppingToken);
+                var raw = JsonSerializer.Deserialize<RawTick>(cr.Message.Value);
+                if (raw is null) continue;
 
-                        if (consumeResult?.Message == null) continue;
+                // ➜ convert with our extension method
+                var ui = raw.ToUi();
 
-                        var rawTick = JsonSerializer.Deserialize<RawTick>(consumeResult.Message.Value);
-                        
-                        if (rawTick != null)
-                        {
-                            // Transform RawTick to UiTick
-                            var uiTick = NormalizeTick(rawTick);
+                await ProduceAsync(ui, stop);
+                _consumer.Commit(cr);
 
-                            // Produce normalized tick
-                            await ProduceNormalizedTickAsync(uiTick, stoppingToken);
-
-                            // Commit offset only after successful production
-                            _consumer.Commit(consumeResult);
-
-                            _logger.LogInformation(
-                                "Processed tick: {Symbol} Bid={Bid} Ask={Ask} Mid={Mid} Spread={Spread}%",
-                                uiTick.Symbol, uiTick.Bid, uiTick.Ask, uiTick.Mid, uiTick.SpreadPct
-                            );
-                        }
-                    }
-                    catch (ConsumeException ex)
-                    {
-                        _logger.LogError(ex, "Error consuming message");
-                        await Task.Delay(1000, stoppingToken); // Brief pause before retry
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Error processing message");
-                        await Task.Delay(1000, stoppingToken);
-                    }
-                }
+                _logger.LogInformation(
+                    "Tick {Sym}  Mid={Mid:F2}  Spread={Spr:F2}%",
+                    ui.Symbol, ui.Mid, ui.SpreadPct);
             }
-            catch (OperationCanceledException)
+            catch (ConsumeException ex)
             {
-                _logger.LogInformation("Normaliser stopping...");
+                _logger.LogError(ex, "Kafka consume error – retrying");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Fatal error in Normaliser");
-                throw;
-            }
-            finally
-            {
-                await CleanupAsync();
+                _logger.LogError(ex, "Normaliser processing error");
             }
         }
+    }
 
-        private UiTick NormalizeTick(RawTick rawTick)
-        {
-            var mid = (rawTick.Bid + rawTick.Ask) / 2;
-            var spreadPct = (rawTick.Ask - rawTick.Bid) / mid * 100;
-
-            return new UiTick(
-                Symbol: rawTick.Symbol,
-                Bid: rawTick.Bid,
-                Ask: rawTick.Ask,
-                Mid: mid,
-                SpreadPct: spreadPct,
-                TsMs: rawTick.TsMs
-            );
-        }
-
-        private async Task ProduceNormalizedTickAsync(UiTick uiTick, CancellationToken cancellationToken)
-        {
-            try
+    /* ------------------------------------------------------------------ */
+    private Task ProduceAsync(UiTick ui, CancellationToken ct) =>
+        _producer.ProduceAsync(
+            OUTPUT_TOPIC,
+            new Message<string, string>
             {
-                var message = new Message<string, string>
-                {
-                    Key = uiTick.Symbol,
-                    Value = JsonSerializer.Serialize(uiTick)
-                };
+                Key = ui.Symbol,
+                Value = JsonSerializer.Serialize(ui)
+            },
+            ct);
 
-                var deliveryResult = await _producer.ProduceAsync(
-                    OUTPUT_TOPIC, 
-                    message, 
-                    cancellationToken
-                );
+    /* ------------------------------------------------------------------ */
+    public override Task StopAsync(CancellationToken ct)
+    {
+        _consumer.Close();
+        _consumer.Dispose();
 
-                _logger.LogDebug(
-                    "Produced normalized tick to {Topic} [{Partition}] at offset {Offset}",
-                    deliveryResult.Topic,
-                    deliveryResult.Partition,
-                    deliveryResult.Offset
-                );
-            }
-            catch (ProduceException<string, string> ex)
-            {
-                _logger.LogError(ex, "Failed to produce normalized tick");
-                throw;
-            }
-        }
+        _producer.Flush(TimeSpan.FromSeconds(5));
+        _producer.Dispose();
 
-        private async Task CleanupAsync()
-        {
-            try
-            {
-                _consumer.Close(); // Triggers partition rebalance
-                _consumer.Dispose();
-
-                _producer.Flush(TimeSpan.FromSeconds(5));
-                _producer.Dispose();
-
-                _logger.LogInformation("Normaliser cleanup completed");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error during Normaliser cleanup");
-            }
-        }
+        _logger.LogInformation("Normaliser stopped cleanly");
+        return base.StopAsync(ct);
     }
 }

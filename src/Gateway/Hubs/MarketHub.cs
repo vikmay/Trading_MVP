@@ -1,27 +1,22 @@
 using Microsoft.AspNetCore.SignalR;
-using Common;
+using Microsoft.Extensions.Logging;
 
-namespace Gateway.Hubs
+namespace Gateway.Hubs;
+
+public sealed class MarketHub : Hub
 {
-    public class MarketHub : Hub
+    private readonly ILogger<MarketHub> _log;
+    public MarketHub(ILogger<MarketHub> log) => _log = log;
+
+    public override Task OnConnectedAsync()
     {
-        private readonly ILogger<MarketHub> _logger;
+        _log.LogInformation("Client connected: {Id}", Context.ConnectionId);
+        return base.OnConnectedAsync();
+    }
 
-        public MarketHub(ILogger<MarketHub> logger)
-        {
-            _logger = logger;
-        }
-
-        public override async Task OnConnectedAsync()
-        {
-            _logger.LogInformation("Client connected: {ConnectionId}", Context.ConnectionId);
-            await base.OnConnectedAsync();
-        }
-
-        public override async Task OnDisconnectedAsync(Exception? exception)
-        {
-            _logger.LogInformation("Client disconnected: {ConnectionId}", Context.ConnectionId);
-            await base.OnDisconnectedAsync(exception);
-        }
+    public override Task OnDisconnectedAsync(Exception? ex)
+    {
+        _log.LogInformation("Client disconnected: {Id}", Context.ConnectionId);
+        return base.OnDisconnectedAsync(ex);
     }
 }

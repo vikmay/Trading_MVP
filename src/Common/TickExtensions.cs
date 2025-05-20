@@ -1,12 +1,28 @@
-namespace Common
+namespace Common;
+
+/// <summary>
+/// Helpers for converting ticks between shapes.
+/// </summary>
+public static class TickExtensions
 {
-    public static class TickExtensions
+    /// <summary>
+    /// Convert a <see cref="RawTick"/> from the Collector into the
+    /// <see cref="UiTick"/> consumed by the Normaliser / web-UI.
+    /// </summary>
+    public static UiTick ToUi(this RawTick raw)
     {
-        public static UiTick ToUi(this RawTick rawTick)
+        var mid = (raw.Bid + raw.Ask) / 2;
+        var spreadPct = (raw.Ask - raw.Bid) / mid * 100;
+
+        // NEW: object-initializer – no constructor needed
+        return new UiTick
         {
-            var mid = (rawTick.Bid + rawTick.Ask) / 2;
-            var spreadPct = (rawTick.Ask - rawTick.Bid) / rawTick.Bid * 100;
-            return new UiTick(rawTick.Symbol, rawTick.Bid, rawTick.Ask, mid, spreadPct, rawTick.TsMs);
-        }
+            Symbol = raw.Symbol,
+            Bid = raw.Bid,
+            Ask = raw.Ask,
+            Mid = mid,
+            SpreadPct = spreadPct,
+            TsMs = raw.TsMs
+        };
     }
 }

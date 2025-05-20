@@ -1,10 +1,11 @@
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Normaliser;
 
-IHost host = Host.CreateDefaultBuilder(args)
+Host.CreateDefaultBuilder(args)
     .ConfigureServices(services =>
     {
-        services.AddHostedService<Worker>();
+        services.AddHostedService<Worker>();   // <- registers your Worker
     })
-    .Build();
-
-await host.RunAsync();
+    .Build()
+    .Run();

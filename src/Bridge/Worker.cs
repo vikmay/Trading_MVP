@@ -199,8 +199,8 @@ public class BridgeWorker : BackgroundService
                     var body = Encoding.UTF8.GetBytes(consumeResult.Message.Value);
 
                     _channel!.BasicPublish(
-                        exchange: _exchangeName,
-                        routingKey: tick.Symbol,
+                        exchange: "",
+                        routingKey: "market.ticks",
                         basicProperties: null,
                         body: body
                     );

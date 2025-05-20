@@ -45,6 +45,23 @@
           }
         }
       },
+      "RabbitMQ.Client/6.6.0": {
+        "type": "package",
+        "dependencies": {
+          "System.Memory": "4.5.5",
+          "System.Threading.Channels": "7.0.0"
+        },
+        "compile": {
+          "lib/netstandard2.0/RabbitMQ.Client.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/netstandard2.0/RabbitMQ.Client.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "Swashbuckle.AspNetCore/6.6.2": {
         "type": "package",
         "dependencies": {
@@ -107,6 +124,15 @@
         "frameworkReferences": [
           "Microsoft.AspNetCore.App"
         ]
+      },
+      "System.Memory/4.5.5": {
+        "type": "package",
+        "compile": {
+          "ref/netcoreapp2.1/_._": {}
+        },
+        "runtime": {
+          "lib/netcoreapp2.1/_._": {}
+        }
       },
       "System.Threading.Channels/8.0.0": {
         "type": "package",
@@ -398,6 +424,23 @@
         "microsoft.openapi.nuspec"
       ]
     },
+    "RabbitMQ.Client/6.6.0": {
+      "sha512": "klht0KBLO7xs/uIn8uejq1VC5wJJ8dHJSm2GmFmJHWQnFzWK5YTNUta6IrnuzitR1T5psxIuqwdQqalbTLPtcA==",
+      "type": "package",
+      "path": "rabbitmq.client/6.6.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "icon.png",
+        "lib/net462/RabbitMQ.Client.dll",
+        "lib/net462/RabbitMQ.Client.xml",
+        "lib/netstandard2.0/RabbitMQ.Client.dll",
+        "lib/netstandard2.0/RabbitMQ.Client.xml",
+        "rabbitmq.client.6.6.0.nupkg.sha512",
+        "rabbitmq.client.nuspec"
+      ]
+    },
     "Swashbuckle.AspNetCore/6.6.2": {
       "sha512": "+NB4UYVYN6AhDSjW0IJAd1AGD8V33gemFNLPaxKTtPkHB+HaKAKf9MGAEUPivEWvqeQfcKIw8lJaHq6LHljRuw==",
       "type": "package",
@@ -500,6 +543,29 @@
         "swashbuckle.aspnetcore.swaggerui.nuspec"
       ]
     },
+    "System.Memory/4.5.5": {
+      "sha512": "XIWiDvKPXaTveaB7HVganDlOCRoj03l+jrwNvcge/t8vhGYKvqV+dMv6G4SAX2NoNmN0wZfVPTAlFwZcZvVOUw==",
+      "type": "package",
+      "path": "system.memory/4.5.5",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE.TXT",
+        "THIRD-PARTY-NOTICES.TXT",
+        "lib/net461/System.Memory.dll",
+        "lib/net461/System.Memory.xml",
+        "lib/netcoreapp2.1/_._",
+        "lib/netstandard1.1/System.Memory.dll",
+        "lib/netstandard1.1/System.Memory.xml",
+        "lib/netstandard2.0/System.Memory.dll",
+        "lib/netstandard2.0/System.Memory.xml",
+        "ref/netcoreapp2.1/_._",
+        "system.memory.4.5.5.nupkg.sha512",
+        "system.memory.nuspec",
+        "useSharedDesignerContext.txt",
+        "version.txt"
+      ]
+    },
     "System.Threading.Channels/8.0.0": {
       "sha512": "CMaFr7v+57RW7uZfZkPExsPB6ljwzhjACWW1gfU35Y56rk72B/Wu+sTqxVmGSk4SFUlPc3cjeKND0zktziyjBA==",
       "type": "package",
@@ -542,6 +608,7 @@
     "net8.0": [
       "Common >= 1.0.0",
       "Microsoft.AspNetCore.OpenApi >= 8.0.16",
+      "RabbitMQ.Client >= 6.5.3",
       "Swashbuckle.AspNetCore >= 6.6.2",
       "System.Threading.Channels >= 8.0.0"
     ]
@@ -552,11 +619,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\IT\\CA\\TradingMvp\\src\\Gateway\\Gateway.csproj",
+      "projectUniqueName": "d:\\IT\\CA\\TradingMvp\\src\\Gateway\\Gateway.csproj",
       "projectName": "Gateway",
-      "projectPath": "D:\\IT\\CA\\TradingMvp\\src\\Gateway\\Gateway.csproj",
+      "projectPath": "d:\\IT\\CA\\TradingMvp\\src\\Gateway\\Gateway.csproj",
       "packagesPath": "C:\\Users\\larvo.ASUS_FLIP_14\\.nuget\\packages\\",
-      "outputPath": "D:\\IT\\CA\\TradingMvp\\src\\Gateway\\obj\\",
+      "outputPath": "d:\\IT\\CA\\TradingMvp\\src\\Gateway\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\larvo.ASUS_FLIP_14\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -571,8 +638,8 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "D:\\IT\\CA\\TradingMvp\\src\\Common\\Common.csproj": {
-              "projectPath": "D:\\IT\\CA\\TradingMvp\\src\\Common\\Common.csproj"
+            "d:\\IT\\CA\\TradingMvp\\src\\Common\\Common.csproj": {
+              "projectPath": "d:\\IT\\CA\\TradingMvp\\src\\Common\\Common.csproj"
             }
           }
         }
@@ -596,6 +663,10 @@
           "Microsoft.AspNetCore.OpenApi": {
             "target": "Package",
             "version": "[8.0.16, )"
+          },
+          "RabbitMQ.Client": {
+            "target": "Package",
+            "version": "[6.5.3, )"
           },
           "Swashbuckle.AspNetCore": {
             "target": "Package",
@@ -628,5 +699,17 @@
         "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.300/PortableRuntimeIdentifierGraph.json"
       }
     }
-  }
+  },
+  "logs": [
+    {
+      "code": "NU1603",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Gateway depends on RabbitMQ.Client (>= 6.5.3) but RabbitMQ.Client 6.5.3 was not found. RabbitMQ.Client 6.6.0 was resolved instead.",
+      "libraryId": "RabbitMQ.Client",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    }
+  ]
 }
