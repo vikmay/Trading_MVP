@@ -21,7 +21,7 @@ builder.Services.AddCors(opts =>
 builder.Services.AddSignalR();          // or AddSignalR().AddJsonProtocol() …
 
 // … the rest of your services …
-
+builder.Services.AddHostedService<GatewayWorker>();
 var app = builder.Build();
 
 // 2️⃣  Pipeline order matters!

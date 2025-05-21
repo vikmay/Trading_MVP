@@ -2,132 +2,150 @@ import { useEffect, useState } from 'react';
 import * as signalR from '@microsoft/signalr';
 import './TickerWS.css';
 
-function TickerWS() {
+/**
+ * BTC/USDT live ticker fed from SignalR (gateway → RabbitMQ → browser)
+ */
+export default function TickerWS() {
     const [tick, setTick] = useState(null);
-    const [isConnected, setIsConnected] = useState(false);
+    const [isConnected, setConnected] = useState(false);
     const [error, setError] = useState(null);
     const [lastBid, setLastBid] = useState(null);
     const [flash, setFlash] = useState(null);
-    const [lastFlashTime, setLastFlashTime] = useState(0);
+    const [lastFlashAt, setLastFlashAt] = useState(0);
 
+    // ───────────────────────────────────────────────────────── SignalR ─┐
     useEffect(() => {
         const connection = new signalR.HubConnectionBuilder()
             .withUrl('http://localhost:8080/hub/market')
             .withAutomaticReconnect()
             .build();
 
-        async function startConnection() {
+        const start = async () => {
             try {
                 await connection.start();
-                console.log('SignalR Connected');
-                setIsConnected(true);
+                console.log('✅ SignalR connected');
+                setConnected(true);
                 setError(null);
-            } catch (err) {
-                console.error('SignalR Connection Error:', err);
+            } catch (e) {
+                console.error('❌ SignalR connection error', e);
                 setError('Failed to connect to market hub');
-                setIsConnected(false);
-                setTimeout(startConnection, 5000);
+                setConnected(false);
+                setTimeout(start, 5_000);
             }
-        }
+        };
 
-        connection.on('tick', (newTick) => {
-            console.log('Received tick:', newTick);
-            setTick(newTick);
+        // payload normalisation -> nice camel‑cased object for the UI
+        connection.on('tick', (raw) => {
+            const obj = typeof raw === 'string' ? JSON.parse(raw) : raw;
+            setTick({
+                symbol: obj.Symbol,
+                bid: obj.Bid,
+                ask: obj.Ask,
+                mid: obj.Mid,
+                spreadPct: obj.SpreadPct,
+                tsMs: obj.TsMs,
+            });
         });
 
         connection.onclose(() => {
-            console.log('SignalR Disconnected');
-            setIsConnected(false);
-            setTimeout(startConnection, 5000);
+            setConnected(false);
+            setTimeout(start, 5_000);
         });
 
-        startConnection();
-
-        return () => {
-            connection.stop();
-        };
+        start();
+        return () => void connection.stop();
     }, []);
+    // ─────────────────────────────────────────────────────────────────────┘
 
+    // ─────────── flashing row background when bid changes ───────────────┐
     useEffect(() => {
-        if (tick) {
-            const now = Date.now();
-            // Перевіряємо, чи пройшло достатньо часу з останнього flash
-            if (now - lastFlashTime > 500) {
-                if (lastBid !== null && tick.bid !== lastBid) {
-                    setFlash(tick.bid > lastBid ? 'green' : 'red');
-                    setLastFlashTime(now);
-                    setTimeout(() => setFlash(null), 800); // Довший час відображення
-                }
-                setLastBid(tick.bid);
-            }
+        if (!tick) return;
+        const now = Date.now();
+        if (
+            now - lastFlashAt > 500 &&
+            lastBid !== null &&
+            tick.bid !== lastBid
+        ) {
+            setFlash(tick.bid > lastBid ? 'green' : 'red');
+            setLastFlashAt(now);
+            setTimeout(() => setFlash(null), 800);
         }
-    }, [tick, lastBid, lastFlashTime]);
+        setLastBid(tick.bid);
+    }, [tick, lastBid, lastFlashAt]);
+    // ─────────────────────────────────────────────────────────────────────┘
 
-    const formatNumber = (number) => {
-        return new Intl.NumberFormat('en-US', {
+    const fmt = (n) =>
+        new Intl.NumberFormat('en-US', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
-        }).format(number);
-    };
+        }).format(n);
 
     return (
-        <div className="ticker">
+        <div className="ticker flex flex-col gap-4 p-4">
             {!isConnected && (
-                <div className="disconnected-banner">
-                    🔴 Disconnected from market data. Attempting to reconnect...
+                <div className="disconnected-banner text-red-600 font-medium">
+                    🔴 Disconnected from market data. Attempting to reconnect…
                 </div>
             )}
 
-            {error && <div className="error-banner">{error}</div>}
+            {error && <div className="error-banner text-red-500">{error}</div>}
 
-            <div className="ticker-status">
-                Status: {isConnected ? '🟢 Connected' : '🔴 Disconnected'}
+            <div className="ticker-status font-semibold">
+                Status: {isConnected ? '🟢 Connectedddddd' : '🔴 Disconnected'}
             </div>
 
             {tick && (
-                <div className={`ticker-data ${flash}`}>
-                    <h2>BTC/USDT</h2>
-                    <table className="price-table">
-                        <thead>
+                <div
+                    className={`ticker-data rounded-xl shadow p-4 transition-colors duration-300 ${
+                        flash === 'green'
+                            ? 'bg-green-100'
+                            : flash === 'red'
+                            ? 'bg-red-100'
+                            : ''
+                    }`}
+                >
+                    <h2 className="text-xl font-bold mb-2">
+                        {tick.symbol ?? 'BTC/USDT'}
+                    </h2>
+
+                    <table className="price-table w-full text-right mb-2">
+                        <thead className="text-sm text-gray-500">
                             <tr>
                                 <th>Bid</th>
                                 <th>Ask</th>
                                 <th>Mid</th>
-                                <th>Spread %</th>
+                                <th>Spread&nbsp;%</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody className="text-lg">
                             <tr>
                                 <td>
-                                    $
                                     {tick.bid != null
-                                        ? formatNumber(tick.bid)
+                                        ? `$${fmt(tick.bid)}`
                                         : 'N/A'}
                                 </td>
                                 <td>
-                                    $
                                     {tick.ask != null
-                                        ? formatNumber(tick.ask)
+                                        ? `$${fmt(tick.ask)}`
                                         : 'N/A'}
                                 </td>
                                 <td>
-                                    $
                                     {tick.mid != null
-                                        ? formatNumber(tick.mid)
+                                        ? `$${fmt(tick.mid)}`
                                         : 'N/A'}
                                 </td>
                                 <td>
                                     {tick.spreadPct != null
-                                        ? formatNumber(tick.spreadPct)
+                                        ? `${fmt(tick.spreadPct)} %`
                                         : 'N/A'}
-                                    %
                                 </td>
                             </tr>
                         </tbody>
                     </table>
-                    <div className="timestamp">
+
+                    <div className="timestamp text-sm text-gray-500">
                         Last update:{' '}
-                        {tick.tsMs != null
+                        {tick.tsMs
                             ? new Date(tick.tsMs).toLocaleTimeString()
                             : 'N/A'}
                     </div>
@@ -136,5 +154,3 @@ function TickerWS() {
         </div>
     );
 }
-
-export default TickerWS;
