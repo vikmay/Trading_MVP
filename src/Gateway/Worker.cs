@@ -6,26 +6,32 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using Common;                  // RawTick
+using Gateway.Services;        // IPriceCache
 
 namespace Gateway.Workers;
 
 /// <summary>
 /// Consumes normalised ticks from RabbitMQ and pushes them to every
-/// connected Web-Socket client via <see cref="MarketHub"/>.
+/// connected WebSocket client via <see cref="MarketHub"/>,
+/// while caching them for replay.
 /// </summary>
 public sealed class GatewayWorker : BackgroundService
 {
     private readonly ILogger<GatewayWorker> _log;
     private readonly IHubContext<Gateway.Hubs.MarketHub> _hub;
+    private readonly IPriceCache _cache;    // 🔹 new
     private readonly IModel _ch;
     private readonly string _queue;
 
     public GatewayWorker(ILogger<GatewayWorker> log,
                          IConfiguration cfg,
-                         IHubContext<Gateway.Hubs.MarketHub> hub)
+                         IHubContext<Gateway.Hubs.MarketHub> hub,
+                         IPriceCache cache)                               // 🔹 inject
     {
         _log = log;
         _hub = hub;
+        _cache = cache;
         _queue = cfg["RABBIT_QUEUE"] ?? "market.ticks";
 
         var factory = new ConnectionFactory
@@ -54,9 +60,15 @@ public sealed class GatewayWorker : BackgroundService
             if (token.IsCancellationRequested) return;
 
             var json = Encoding.UTF8.GetString(ea.Body.ToArray());
-            await _hub.Clients.All.SendAsync("tick", json, token);
+            var tick = JsonSerializer.Deserialize<RawTick>(json);
 
-            _log.LogDebug("--> tick forwarded ({Len} bytes)", json.Length);
+            if (tick is null) return;                // defensive
+
+            _cache.Add(tick);                        // 🔹 store for replay
+
+            await _hub.Clients.All.SendAsync("tick", tick, token);
+
+            _log.LogDebug("--> tick forwarded seq={Seq}", tick.Seq);
         };
 
         _ch.BasicConsume(queue: _queue, autoAck: true, consumer: consumer);

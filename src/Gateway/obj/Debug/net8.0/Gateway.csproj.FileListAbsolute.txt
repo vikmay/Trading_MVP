@@ -68,3 +68,4 @@ D:\IT\CA\TradingMvp\src\Gateway\obj\Debug\net8.0\refint\Gateway.dll
 D:\IT\CA\TradingMvp\src\Gateway\obj\Debug\net8.0\Gateway.pdb
 D:\IT\CA\TradingMvp\src\Gateway\obj\Debug\net8.0\Gateway.genruntimeconfig.cache
 D:\IT\CA\TradingMvp\src\Gateway\obj\Debug\net8.0\ref\Gateway.dll
+D:\IT\CA\TradingMvp\src\Gateway\bin\Debug\net8.0\RabbitMQ.Client.dll

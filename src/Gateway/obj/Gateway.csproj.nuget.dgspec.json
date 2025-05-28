@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "d:\\IT\\CA\\TradingMvp\\src\\Gateway\\Gateway.csproj": {}
+    "D:\\IT\\CA\\TradingMvp\\src\\Gateway\\Gateway.csproj": {}
   },
   "projects": {
-    "d:\\IT\\CA\\TradingMvp\\src\\Common\\Common.csproj": {
+    "D:\\IT\\CA\\TradingMvp\\src\\Common\\Common.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "d:\\IT\\CA\\TradingMvp\\src\\Common\\Common.csproj",
+        "projectUniqueName": "D:\\IT\\CA\\TradingMvp\\src\\Common\\Common.csproj",
         "projectName": "Common",
-        "projectPath": "d:\\IT\\CA\\TradingMvp\\src\\Common\\Common.csproj",
+        "projectPath": "D:\\IT\\CA\\TradingMvp\\src\\Common\\Common.csproj",
         "packagesPath": "C:\\Users\\larvo.ASUS_FLIP_14\\.nuget\\packages\\",
-        "outputPath": "d:\\IT\\CA\\TradingMvp\\src\\Common\\obj\\",
+        "outputPath": "D:\\IT\\CA\\TradingMvp\\src\\Common\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\larvo.ASUS_FLIP_14\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -63,14 +63,14 @@
         }
       }
     },
-    "d:\\IT\\CA\\TradingMvp\\src\\Gateway\\Gateway.csproj": {
+    "D:\\IT\\CA\\TradingMvp\\src\\Gateway\\Gateway.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "d:\\IT\\CA\\TradingMvp\\src\\Gateway\\Gateway.csproj",
+        "projectUniqueName": "D:\\IT\\CA\\TradingMvp\\src\\Gateway\\Gateway.csproj",
         "projectName": "Gateway",
-        "projectPath": "d:\\IT\\CA\\TradingMvp\\src\\Gateway\\Gateway.csproj",
+        "projectPath": "D:\\IT\\CA\\TradingMvp\\src\\Gateway\\Gateway.csproj",
         "packagesPath": "C:\\Users\\larvo.ASUS_FLIP_14\\.nuget\\packages\\",
-        "outputPath": "d:\\IT\\CA\\TradingMvp\\src\\Gateway\\obj\\",
+        "outputPath": "D:\\IT\\CA\\TradingMvp\\src\\Gateway\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\larvo.ASUS_FLIP_14\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -85,8 +85,8 @@
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "d:\\IT\\CA\\TradingMvp\\src\\Common\\Common.csproj": {
-                "projectPath": "d:\\IT\\CA\\TradingMvp\\src\\Common\\Common.csproj"
+              "D:\\IT\\CA\\TradingMvp\\src\\Common\\Common.csproj": {
+                "projectPath": "D:\\IT\\CA\\TradingMvp\\src\\Common\\Common.csproj"
               }
             }
           }
@@ -113,7 +113,7 @@
             },
             "RabbitMQ.Client": {
               "target": "Package",
-              "version": "[6.5.3, )"
+              "version": "[6.*, )"
             },
             "Swashbuckle.AspNetCore": {
               "target": "Package",

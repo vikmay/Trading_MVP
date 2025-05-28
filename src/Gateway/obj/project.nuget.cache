@@ -1,13 +1,13 @@
 {
   "version": 2,
-  "dgSpecHash": "jm+z66bofqY=",
+  "dgSpecHash": "uN7FYopKQ8U=",
   "success": true,
-  "projectFilePath": "d:\\IT\\CA\\TradingMvp\\src\\Gateway\\Gateway.csproj",
+  "projectFilePath": "D:\\IT\\CA\\TradingMvp\\src\\Gateway\\Gateway.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\larvo.ASUS_FLIP_14\\.nuget\\packages\\microsoft.aspnetcore.openapi\\8.0.16\\microsoft.aspnetcore.openapi.8.0.16.nupkg.sha512",
     "C:\\Users\\larvo.ASUS_FLIP_14\\.nuget\\packages\\microsoft.extensions.apidescription.server\\6.0.5\\microsoft.extensions.apidescription.server.6.0.5.nupkg.sha512",
     "C:\\Users\\larvo.ASUS_FLIP_14\\.nuget\\packages\\microsoft.openapi\\1.6.14\\microsoft.openapi.1.6.14.nupkg.sha512",
-    "C:\\Users\\larvo.ASUS_FLIP_14\\.nuget\\packages\\rabbitmq.client\\6.6.0\\rabbitmq.client.6.6.0.nupkg.sha512",
+    "C:\\Users\\larvo.ASUS_FLIP_14\\.nuget\\packages\\rabbitmq.client\\6.8.1\\rabbitmq.client.6.8.1.nupkg.sha512",
     "C:\\Users\\larvo.ASUS_FLIP_14\\.nuget\\packages\\swashbuckle.aspnetcore\\6.6.2\\swashbuckle.aspnetcore.6.6.2.nupkg.sha512",
     "C:\\Users\\larvo.ASUS_FLIP_14\\.nuget\\packages\\swashbuckle.aspnetcore.swagger\\6.6.2\\swashbuckle.aspnetcore.swagger.6.6.2.nupkg.sha512",
     "C:\\Users\\larvo.ASUS_FLIP_14\\.nuget\\packages\\swashbuckle.aspnetcore.swaggergen\\6.6.2\\swashbuckle.aspnetcore.swaggergen.6.6.2.nupkg.sha512",
@@ -15,18 +15,5 @@
     "C:\\Users\\larvo.ASUS_FLIP_14\\.nuget\\packages\\system.memory\\4.5.5\\system.memory.4.5.5.nupkg.sha512",
     "C:\\Users\\larvo.ASUS_FLIP_14\\.nuget\\packages\\system.threading.channels\\8.0.0\\system.threading.channels.8.0.0.nupkg.sha512"
   ],
-  "logs": [
-    {
-      "code": "NU1603",
-      "level": "Warning",
-      "message": "Gateway depends on RabbitMQ.Client (>= 6.5.3) but RabbitMQ.Client 6.5.3 was not found. RabbitMQ.Client 6.6.0 was resolved instead.",
-      "projectPath": "d:\\IT\\CA\\TradingMvp\\src\\Gateway\\Gateway.csproj",
-      "warningLevel": 1,
-      "filePath": "d:\\IT\\CA\\TradingMvp\\src\\Gateway\\Gateway.csproj",
-      "libraryId": "RabbitMQ.Client",
-      "targetGraphs": [
-        "net8.0"
-      ]
-    }
-  ]
+  "logs": []
 }

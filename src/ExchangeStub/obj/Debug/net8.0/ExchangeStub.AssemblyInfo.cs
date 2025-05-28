@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ExchangeStub")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+dbd2eca84ee4fb6a792d61e3a8bf1479f75dd9cb")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+59afba3eaab77ec524320e596efe4de15c84b2fd")]
 [assembly: System.Reflection.AssemblyProductAttribute("ExchangeStub")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ExchangeStub")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

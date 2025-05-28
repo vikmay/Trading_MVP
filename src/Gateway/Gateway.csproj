@@ -10,7 +10,7 @@
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.16" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
     <PackageReference Include="System.Threading.Channels" Version="8.0.0" />
-    <PackageReference Include="RabbitMQ.Client" Version="6.5.3" />
+    <PackageReference Include="RabbitMQ.Client" Version="6.*" />
   </ItemGroup>
 
   <ItemGroup>

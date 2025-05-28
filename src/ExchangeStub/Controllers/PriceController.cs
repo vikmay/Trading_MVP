@@ -11,12 +11,18 @@ namespace ExchangeStub.Controllers
         public ActionResult<RawTick> Get()
         {
             var rnd = new Random();
+
+            // generate prices directly as double (no decimal cast)
+            double bid = rnd.NextDouble() * 1_000 + 30_000;
+            double ask = rnd.NextDouble() * 1_000 + 30_000;
+
             var tick = new RawTick(
                 "BTCUSDT",
-                (decimal)(rnd.NextDouble() * 1000 + 30000),
-                (decimal)(rnd.NextDouble() * 1000 + 30000),
+                bid,
+                ask,
                 DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
             );
+
             return Ok(tick);
         }
     }

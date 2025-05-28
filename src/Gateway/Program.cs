@@ -1,5 +1,6 @@
 using Gateway.Hubs;                       // <— your hub namespace
 using Gateway.Workers;                    // <— the RabbitMQ worker
+using Gateway.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +20,8 @@ builder.Services.AddCors(opts =>
 });
 
 builder.Services.AddSignalR();          // or AddSignalR().AddJsonProtocol() …
+
+builder.Services.AddSingleton<IPriceCache, PriceCache>();
 
 // … the rest of your services …
 builder.Services.AddHostedService<GatewayWorker>();
