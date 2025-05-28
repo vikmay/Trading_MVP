@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
+// src/TickerWS.jsx  ───────────────────────────────────────────────────────────
+import { useEffect, useRef, useState, useCallback } from 'react';
 import * as signalR from '@microsoft/signalr';
 import {
     LineChart,
@@ -7,156 +8,155 @@ import {
     YAxis,
     CartesianGrid,
     Tooltip,
+    Brush,
     Dot,
 } from 'recharts';
 import './TickerWS.css';
 
-/**
- * BTC/USDT live ticker fed from SignalR (gateway → RabbitMQ → browser)
- * Now with a scrolling price chart and gap-highlight.
- */
+const LIVE_WINDOW_MS = 120_000; // 2-minute look-back
+const MAX_POINTS = 1_500; // keep memory bounded
+
 export default function TickerWS() {
-    const [tick, setTick] = useState(null);
-    const [points, setPoints] = useState([]);
-    const [isConnected, setConnected] = useState(false);
-    const [error, setError] = useState(null);
-    const [lastBid, setLastBid] = useState(null);
-    const [flash, setFlash] = useState(null);
-    const [lastFlashAt, setLastFlashAt] = useState(0);
+    const [points, setPoints] = useState([]); // all received points
+    const [queue, setQueue] = useState([]); // buffered while paused
+    const [tick, setTick] = useState(null); // latest live point
 
-    const lastSeqRef = useRef(0); // 🔹 track highest Seq
+    const [paused, setPaused] = useState(false);
+    const [connected, setConn] = useState(false);
+    const [error, setErr] = useState(null);
 
-    // ─────────────────────────────────── SignalR ──────────────────────────
+    const lastSeq = useRef(0);
+    const prevBid = useRef(null);
+    const prevAsk = useRef(null);
+
+    /* ───────── helpers ───────── */
+    const nf = (n, d = 2) =>
+        Number.isFinite(n)
+            ? n.toLocaleString('en-US', {
+                  minimumFractionDigits: d,
+                  maximumFractionDigits: d,
+              })
+            : '—';
+
+    const tsLabel = (ts) =>
+        new Date(ts).toLocaleTimeString([], { hour12: false });
+
+    const mapDto = (d) => ({
+        seq: d.Seq ?? d.seq,
+        bid: d.Bid ?? d.bid,
+        ask: d.Ask ?? d.ask,
+        mid: d.Mid ?? d.mid,
+        tsMs: d.TsMs ?? d.tsMs,
+        spreadPct: d.SpreadPct ?? d.spreadPct,
+    });
+
+    /* pushPoint: put dto into live list or pause-queue */
+    const pushPoint = useCallback(
+        (dto) => {
+            const expected = lastSeq.current + 1;
+            const outOfOrder = dto.seq !== expected && lastSeq.current !== 0;
+            lastSeq.current = dto.seq;
+
+            const mid = Number.isFinite(dto.mid)
+                ? dto.mid
+                : (dto.bid + dto.ask) / 2;
+            const spreadPct = Number.isFinite(dto.spreadPct)
+                ? dto.spreadPct
+                : ((dto.ask - dto.bid) / mid) * 100;
+
+            const p = { ...dto, mid, spreadPct, outOfOrder };
+
+            (paused ? setQueue : setPoints)((arr) =>
+                [...arr, p].slice(-MAX_POINTS)
+            );
+            if (!paused) setTick(p);
+        },
+        [paused]
+    );
+
+    /* ───────── SignalR setup ───────── */
     useEffect(() => {
-        const connection = new signalR.HubConnectionBuilder()
+        const hub = new signalR.HubConnectionBuilder()
             .withUrl('http://localhost:8080/hub/market')
             .withAutomaticReconnect()
             .build();
 
-        // unified handler to pull backlog after connect / reconnect
-        const pullBacklog = async () => {
-            try {
-                const missed = await connection.invoke(
-                    'NeedTicksSince',
-                    lastSeqRef.current
-                ); // returns RawTick[]
+        const sub = () =>
+            hub.invoke('SubscribeFrom', lastSeq.current).catch(() => {});
 
-                if (Array.isArray(missed) && missed.length) {
-                    setPoints(
-                        (p) => [...p, ...missed.map(mapDto)].slice(-1000) // keep last 1k
-                    );
-                    lastSeqRef.current = missed[missed.length - 1].Seq;
-                }
-            } catch (e) {
-                console.warn('No backlog available', e);
-            }
-        };
+        const start = () =>
+            hub
+                .start()
+                .then(() => {
+                    setConn(true);
+                    setErr(null);
+                    sub();
+                })
+                .catch(() => {
+                    setConn(false);
+                    setErr('hub connect failed');
+                    setTimeout(start, 5_000);
+                });
 
-        const start = async () => {
-            try {
-                await connection.start();
-                console.log('✅ SignalR connected');
-                setConnected(true);
-                setError(null);
-                pullBacklog();
-            } catch (e) {
-                console.error('❌ SignalR connection error', e);
-                setError('Failed to connect to market hub');
-                setConnected(false);
-                setTimeout(start, 5_000);
-            }
-        };
-
-        const mapDto = (dto) => ({
-            seq: dto.Seq ?? dto.seq,
-            bid: dto.Bid ?? dto.bid,
-            ask: dto.Ask ?? dto.ask,
-            mid: dto.Mid ?? dto.mid,
-            tsMs: dto.TsMs ?? dto.tsMs,
+        hub.on('tick', (raw) =>
+            pushPoint(mapDto(typeof raw === 'string' ? JSON.parse(raw) : raw))
+        );
+        hub.onreconnected(() => {
+            setConn(true);
+            sub();
         });
-
-        connection.on('tick', (raw) => {
-            const obj = typeof raw === 'string' ? JSON.parse(raw) : raw;
-            const dto = mapDto(obj);
-
-            // gap detector
-            const expectedSeq = lastSeqRef.current + 1;
-            const outOfOrder =
-                dto.seq !== expectedSeq && lastSeqRef.current !== 0;
-            lastSeqRef.current = dto.seq;
-
-            setPoints(
-                (p) => [...p, { ...dto, outOfOrder }].slice(-1000) // max 1 000 pts
-            );
-
-            setTick(dto);
-        });
-
-        connection.onreconnected(() => {
-            setConnected(true);
-            pullBacklog();
-        });
-
-        connection.onclose(() => {
-            setConnected(false);
+        hub.onclose(() => {
+            setConn(false);
             setTimeout(start, 5_000);
         });
 
         start();
-        return () => void connection.stop();
-    }, []);
-    // ───────────────────────────────────────────────────────────────────────
+        return () => hub.stop();
+    }, [pushPoint]);
 
-    // ───────── flashing row background when bid changes ───────────────────
-    useEffect(() => {
-        if (!tick) return;
-        const now = Date.now();
-        if (
-            now - lastFlashAt > 500 &&
-            lastBid !== null &&
-            tick.bid !== lastBid
-        ) {
-            setFlash(tick.bid > lastBid ? 'green' : 'red');
-            setLastFlashAt(now);
-            setTimeout(() => setFlash(null), 800);
+    /* pause / resume */
+    const togglePause = () => {
+        if (paused) {
+            setPoints((p) => [...p, ...queue].slice(-MAX_POINTS));
+            if (queue.length) setTick(queue[queue.length - 1]);
+            setQueue([]);
         }
-        setLastBid(tick.bid);
-    }, [tick, lastBid, lastFlashAt]);
-    // ───────────────────────────────────────────────────────────────────────
+        setPaused((p) => !p);
+    };
 
-    const fmt = (n) =>
-        new Intl.NumberFormat('en-US', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-        }).format(n);
+    /* flash util – returns class name & updates ref */
+    const flash = (val, ref) => {
+        let cls = '';
+        if (ref.current !== null && val !== ref.current) {
+            cls = val > ref.current ? 'flash-green' : 'flash-red';
+        }
+        ref.current = val; // update *after* comparison
+        return cls;
+    };
 
+    /* data actually fed to chart (live window unless paused) */
+    const now = Date.now();
+    const chartData = paused
+        ? points
+        : points.filter((pt) => pt.tsMs >= now - LIVE_WINDOW_MS);
+
+    /* ───────── render ───────── */
     return (
-        <div className="ticker flex flex-col gap-6 p-4">
-            {!isConnected && (
-                <div className="disconnected-banner text-red-600 font-medium">
-                    🔴 Disconnected from market data. Attempting to reconnect…
-                </div>
-            )}
+        <div className="ticker">
+            <header className="toolbar">
+                <button className="btn" onClick={togglePause}>
+                    {paused ? 'Go live' : 'Pause'}
+                </button>
+                {!connected && <span className="badge red">Disconnected…</span>}
+                {error && <span className="badge orange">{error}</span>}
+            </header>
 
-            {error && <div className="error-banner text-red-500">{error}</div>}
-
-            {/* ─── Price panel ───────────────────────────────────────── */}
+            {/* price panel */}
             {tick && (
-                <div
-                    className={`ticker-data rounded-xl shadow p-4 transition-colors duration-300 ${
-                        flash === 'green'
-                            ? 'bg-green-100'
-                            : flash === 'red'
-                            ? 'bg-red-100'
-                            : ''
-                    }`}
-                >
-                    <h2 className="text-xl font-bold mb-3">
-                        {tick.symbol ?? 'BTC/USDT'}
-                    </h2>
-
-                    <table className="price-table w-full text-right mb-2">
-                        <thead className="text-sm text-gray-500">
+                <div className="price-card">
+                    <h2>{tick.symbol ?? 'BTC/USDT'}</h2>
+                    <table className="price-table">
+                        <thead>
                             <tr>
                                 <th>Bid</th>
                                 <th>Ask</th>
@@ -164,73 +164,62 @@ export default function TickerWS() {
                                 <th>Spread&nbsp;%</th>
                             </tr>
                         </thead>
-                        <tbody className="text-lg">
+                        <tbody>
                             <tr>
-                                <td>
-                                    {tick.bid != null
-                                        ? `$${fmt(tick.bid)}`
-                                        : 'N/A'}
+                                <td className={flash(tick.bid, prevBid)}>
+                                    {nf(tick.bid)}
                                 </td>
-                                <td>
-                                    {tick.ask != null
-                                        ? `$${fmt(tick.ask)}`
-                                        : 'N/A'}
+                                <td className={flash(tick.ask, prevAsk)}>
+                                    {nf(tick.ask)}
                                 </td>
-                                <td>
-                                    {tick.mid != null
-                                        ? `$${fmt(tick.mid)}`
-                                        : 'N/A'}
-                                </td>
-                                <td>
-                                    {tick.spreadPct != null
-                                        ? `${fmt(tick.spreadPct)} %`
-                                        : 'N/A'}
-                                </td>
+                                <td>{nf(tick.mid)}</td>
+                                <td>{nf(tick.spreadPct)}</td>
                             </tr>
                         </tbody>
                     </table>
-
-                    <div className="timestamp text-sm text-gray-500">
-                        Last update:{' '}
-                        {tick.tsMs
-                            ? new Date(tick.tsMs).toLocaleTimeString()
-                            : 'N/A'}
-                    </div>
+                    <div className="timestamp">Last: {tsLabel(tick.tsMs)}</div>
                 </div>
             )}
 
-            {/* ─── Price chart ──────────────────────────────────────── */}
-            {points.length > 1 && (
+            {/* chart */}
+            {chartData.length > 1 && (
                 <LineChart
                     width={800}
                     height={360}
-                    data={points}
+                    data={chartData}
                     margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
                 >
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis
-                        dataKey="seq"
-                        tickFormatter={(v) => (v % 5 === 0 ? v : '')}
-                        domain={['auto', 'auto']}
+                        type="number"
+                        dataKey="tsMs"
+                        scale="time"
+                        domain={['dataMin', 'dataMax']}
+                        tickFormatter={tsLabel}
                     />
                     <YAxis domain={['auto', 'auto']} />
-                    <Tooltip />
+                    <Tooltip labelFormatter={tsLabel} />
                     <Line
                         type="monotone"
                         dataKey="mid"
+                        stroke="#3b82f6"
+                        strokeWidth={2}
+                        isAnimationActive={false}
                         dot={(p) => (
                             <Dot
                                 {...p}
                                 r={p.payload.outOfOrder ? 5 : 3}
-                                stroke={
-                                    p.payload.outOfOrder ? 'red' : undefined
-                                }
                                 fill={p.payload.outOfOrder ? 'red' : undefined}
                             />
                         )}
-                        isAnimationActive={false}
+                    />
+                    <Brush
+                        dataKey="tsMs"
+                        height={20}
                         stroke="#3b82f6"
-                        strokeWidth={2}
+                        travellerWidth={10}
+                        tickFormatter={tsLabel}
+                        onChange={() => !paused && setPaused(true)}
                     />
                 </LineChart>
             )}

@@ -1,9 +1,10 @@
+// src/Common/UiTick.cs
 namespace Common;
 
 /// <summary>
-/// Shape of the message the React front-end consumes.
-/// Includes bid/ask, a pre-calculated mid-price and spread % so the UI
-/// doesn’t have to do any math.
+/// Shape sent to the React front-end.  
+/// Includes bid / ask, a pre-calculated mid-price & spread, the epoch-ms
+/// timestamp **and** the running sequence number so the UI can spot gaps.
 /// </summary>
 public record UiTick
 {
@@ -12,5 +13,6 @@ public record UiTick
     public double Ask { get; init; }
     public double Mid { get; init; }
     public double SpreadPct { get; init; }
-    public long TsMs { get; init; }   // epoch-ms timestamp
+    public long TsMs { get; init; }          // epoch-ms
+    public long Seq { get; init; }          // NEW – gap detector
 }

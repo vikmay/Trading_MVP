@@ -1,6 +1,6 @@
 0
 52
-__consumer_offsets 22 304
+__consumer_offsets 22 24942
 __consumer_offsets 30 0
 __consumer_offsets 8 0
 __consumer_offsets 21 0
@@ -29,10 +29,10 @@ __consumer_offsets 24 0
 __consumer_offsets 38 0
 __consumer_offsets 17 0
 __consumer_offsets 48 0
-ticks.norm 0 292
+ticks.norm 0 24913
 __consumer_offsets 19 0
 __consumer_offsets 11 0
-ticks.raw 0 607
+ticks.raw 0 24912
 __consumer_offsets 13 0
 __consumer_offsets 2 0
 __consumer_offsets 43 0
@@ -45,7 +45,7 @@ __consumer_offsets 39 0
 __consumer_offsets 12 0
 __consumer_offsets 45 0
 __consumer_offsets 1 0
-__consumer_offsets 5 21
+__consumer_offsets 5 4777
 __consumer_offsets 26 0
 __consumer_offsets 29 0
 __consumer_offsets 34 0

@@ -1,3 +1,4 @@
+// src/Common/TickExtensions.cs
 namespace Common;
 
 /// <summary>
@@ -6,23 +7,18 @@ namespace Common;
 public static class TickExtensions
 {
     /// <summary>
-    /// Convert a <see cref="RawTick"/> from the Collector into the
-    /// <see cref="UiTick"/> consumed by the Normaliser / web-UI.
+    /// Convert a <see cref="RawTick"/> (produced by the Collector) into the
+    /// <see cref="UiTick"/> consumed by the Normaliser and the web front-end.
     /// </summary>
-    public static UiTick ToUi(this RawTick raw)
-    {
-        var mid = (raw.Bid + raw.Ask) / 2;
-        var spreadPct = (raw.Ask - raw.Bid) / mid * 100;
-
-        // NEW: object-initializer – no constructor needed
-        return new UiTick
+    public static UiTick ToUi(this RawTick raw) =>
+        new UiTick
         {
             Symbol = raw.Symbol,
             Bid = raw.Bid,
             Ask = raw.Ask,
-            Mid = mid,
-            SpreadPct = spreadPct,
-            TsMs = raw.TsMs
+            Mid = raw.Mid,
+            SpreadPct = raw.SpreadPct,
+            TsMs = raw.TsMs,
+            Seq = raw.Seq          // pass the running number through!
         };
-    }
 }

@@ -1,4 +1,4 @@
-// src/Collector/Worker.cs  ────────────────────────────────────────────────────
+// src/Collector/Worker.cs
 using System;
 using System.Net.WebSockets;
 using System.Text;
@@ -17,10 +17,11 @@ namespace Collector
     {
         private readonly ILogger<Worker> _logger;
         private readonly IConfiguration _cfg;
-        private ClientWebSocket _ws = new();
         private readonly IProducer<string, string> _producer;
+        private ClientWebSocket _ws = new();
 
         private const string TOPIC_NAME = "ticks.raw";
+        private static long _seq;                        // NEW – global counter
 
         public Worker(ILogger<Worker> logger, IConfiguration cfg)
         {
@@ -43,7 +44,6 @@ namespace Collector
 
         protected override async Task ExecuteAsync(CancellationToken stop)
         {
-            // ────── figure out which WS we’re supposed to hit ──────
             var wsUrl = _cfg["EXCHANGE_WS_URL"] ??
                         "ws://exchange_stub:8081/ws/ticker?symbol=BTCUSDT";
 
@@ -51,16 +51,15 @@ namespace Collector
 
             _ws = await ConnectWithRetry(wsUrl, "Exchange WS", stop);
 
-            var buffer = new byte[8 * 1024];        // 8 KB just in case
+            var buffer = new byte[8 * 1024];
 
             while (!stop.IsCancellationRequested)
             {
                 WebSocketReceiveResult res;
-                int bytes = 0;
+                int bytes;
 
                 try
                 {
-                    // ── read 1 complete frame (stub sends 1 JSON per frame)
                     res = await _ws.ReceiveAsync(buffer, stop);
                     bytes = res.Count;
                 }
@@ -75,25 +74,26 @@ namespace Collector
                 if (res.MessageType != WebSocketMessageType.Text) continue;
 
                 var json = Encoding.UTF8.GetString(buffer, 0, bytes);
-
-                // 🔎  **NEW**: see exactly what the stub sent
                 _logger.LogInformation("⇢ WS payload: {Payload}", json);
 
-                var tick = JsonSerializer.Deserialize<RawTick>(json);
-
-                if (tick is null)
+                var dto = JsonSerializer.Deserialize<RawTick>(json);
+                if (dto is null)
                 {
                     _logger.LogWarning("Couldn’t deserialize payload – skipping");
                     continue;
                 }
 
+                // STAMP sequence & publish
+                var tick = dto with { Seq = Interlocked.Increment(ref _seq) };
                 await ProduceAsync(tick, stop);
+
+                await Task.Delay(1_000, stop);          // throttle to 1 Hz
             }
 
             await CleanupAsync();
         }
 
-        // ────────────────────────────────────────────────────────────── helpers
+        // ─────────────────── helpers ───────────────────────────
         private async Task ProduceAsync(RawTick t, CancellationToken ct)
         {
             try
@@ -106,13 +106,12 @@ namespace Collector
                                  Value = JsonSerializer.Serialize(t)
                              }, ct);
 
-                _logger.LogInformation("✔ Produced raw tick {Sym} @ {Ts} → {Topic}/{Part}/{Off}",
-                                       t.Symbol, t.TsMs, dr.Topic, dr.Partition, dr.Offset);
+                _logger.LogDebug("Produced {Sym} seq {Seq} → {Part}/{Off}",
+                                 t.Symbol, t.Seq, dr.Partition, dr.Offset);
             }
             catch (ProduceException<string, string> ex)
             {
-                _logger.LogError(ex,
-                    "❌  Kafka produce failed – message will be retried by caller");
+                _logger.LogError(ex, "Kafka produce failed – will retry");
                 throw;
             }
         }
@@ -131,8 +130,9 @@ namespace Collector
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "Cannot connect to {Name}. Retrying in 2 s…", name);
-                    await Task.Delay(2000, ct);
+                    _logger.LogWarning(ex,
+                        "Cannot connect to {Name}. Retrying in 2 s…", name);
+                    await Task.Delay(2_000, ct);
                 }
             }
             throw new OperationCanceledException();
@@ -148,7 +148,7 @@ namespace Collector
             }
             catch { /* ignore */ }
 
-            _producer.Flush();   // block ≤ 5 s by default
+            _producer.Flush();
             _producer.Dispose();
         }
     }
