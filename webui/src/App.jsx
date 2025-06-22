@@ -5,7 +5,8 @@ function App() {
     return (
         <div className="container">
             <header>
-                <h1>Trading Dashboard</h1>
+                <h1>🚀 Trading Dashboard MVP</h1>
+                <p>Real-time cryptocurrency market data streaming</p>
             </header>
 
             <main>
@@ -15,7 +16,9 @@ function App() {
             </main>
 
             <footer>
-                <p>Trading MVP Dashboard</p>
+                <p>
+                    🏗️ Trading MVP Dashboard | Microservices Architecture Demo
+                </p>
             </footer>
         </div>
     );

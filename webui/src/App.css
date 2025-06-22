@@ -1,42 +1,88 @@
+/* Global app styles */
 #root {
-    max-width: 1280px;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%);
+    color: #ffffff;
+    font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.container {
+    max-width: 1400px;
     margin: 0 auto;
-    padding: 2rem;
+    padding: 1rem;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Header */
+header {
     text-align: center;
+    margin-bottom: 1rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    flex-shrink: 0;
 }
 
-.logo {
-    height: 6em;
-    padding: 1.5em;
-    will-change: filter;
-    transition: filter 300ms;
-}
-.logo:hover {
-    filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-    filter: drop-shadow(0 0 2em #61dafbaa);
+header h1 {
+    margin: 0 0 0.25rem;
+    font-size: 2rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #0a84ff 0%, #34c759 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
-@keyframes logo-spin {
-    from {
-        transform: rotate(0deg);
+header p {
+    margin: 0;
+    color: #8e8e93;
+    font-size: 0.9rem;
+    font-weight: 400;
+}
+
+/* Main content */
+main {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    overflow: hidden;
+    min-height: 0;
+}
+
+.ticker-container {
+    width: 100%;
+    max-width: 1200px;
+    height: 100%;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    padding: 0.5rem 0;
+    margin-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    color: #8e8e93;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .container {
+        padding: 1rem;
     }
-    to {
-        transform: rotate(360deg);
+
+    header h1 {
+        font-size: 2rem;
     }
-}
 
-@media (prefers-reduced-motion: no-preference) {
-    a:nth-of-type(2) .logo {
-        animation: logo-spin infinite 20s linear;
+    header p {
+        font-size: 1rem;
     }
-}
-
-.card {
-    padding: 2em;
-}
-
-.read-the-docs {
-    color: #888;
 }

@@ -1,13 +1,17 @@
 /* core layout */
 .ticker {
-    max-width: 800px;
-    margin: 2rem auto;
-    padding: 2rem;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 1rem;
     background: #1a1a1a;
-    border-radius: 12px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
     font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
     color: #fff;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 /* toolbar */
@@ -17,56 +21,97 @@
     align-items: center;
     margin-bottom: 1rem;
 }
-.btn {
-    padding: 0.5rem 1rem;
-    border: none;
+
+/* status bar */
+.status-bar {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    background: rgba(255, 255, 255, 0.05);
     border-radius: 6px;
+    flex-shrink: 0;
+}
+
+.disconnected-banner {
+    background: rgba(255, 59, 48, 0.15);
+    color: #ff3b30;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.error-banner {
+    background: rgba(255, 149, 0, 0.15);
+    color: #ff9500;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.btn-primary {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
     background: #0a84ff;
     color: #fff;
     cursor: pointer;
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: background 0.2s ease;
 }
-.badge {
-    padding: 0.3rem 0.7rem;
-    border-radius: 6px;
-    font-size: 0.8rem;
+
+.btn-primary:hover {
+    background: #0056cc;
 }
-.badge.red {
-    background: rgba(255, 59, 48, 0.15);
-    color: #ff3b30;
-}
-.badge.orange {
-    background: rgba(255, 149, 0, 0.15);
-    color: #ff9500;
+
+.btn-primary:active {
+    background: #004999;
 }
 
 /* price panel */
-.price-card {
+.ticker-data {
     background: rgba(255, 255, 255, 0.03);
-    padding: 1.5rem;
-    border-radius: 10px;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    flex-shrink: 0;
 }
-.price-card h2 {
-    margin: 0 0 1rem;
+
+.ticker-data h2 {
+    margin: 0 0 0.75rem;
     font-weight: 600;
-    font-size: 1.4rem;
+    font-size: 1.2rem;
+    color: #0a84ff;
 }
+
 .price-table {
     width: 100%;
     border-collapse: collapse;
     margin-bottom: 1rem;
 }
+
 .price-table th {
     text-align: right;
     color: #8e8e93;
-    padding: 0.7rem;
+    padding: 0.5rem;
+    font-weight: 500;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 0.9rem;
 }
+
 .price-table td {
     text-align: right;
-    font-size: 1.25rem;
-    padding: 0.7rem;
+    font-size: 1.1rem;
+    padding: 0.5rem;
     font-variant-numeric: tabular-nums;
-    transition: color 0.25s ease;
+    font-weight: 600;
+    transition: all 0.3s ease;
 }
+
 .timestamp {
     font-size: 0.85rem;
     color: #8e8e93;
@@ -75,30 +120,122 @@
 
 /* per-cell flash */
 @keyframes pulse-green {
-    from {
+    0% {
         color: #34c759;
+        background-color: rgba(52, 199, 89, 0.2);
     }
-    to {
+    100% {
         color: #fff;
+        background-color: transparent;
     }
 }
+
 @keyframes pulse-red {
-    from {
+    0% {
         color: #ff3b30;
+        background-color: rgba(255, 59, 48, 0.2);
     }
-    to {
+    100% {
         color: #fff;
+        background-color: transparent;
     }
 }
-.flash-green {
-    animation: pulse-green 0.5s ease-out;
+
+.green {
+    animation: pulse-green 0.8s ease-out;
 }
-.flash-red {
-    animation: pulse-red 0.5s ease-out;
+
+.red {
+    animation: pulse-red 0.8s ease-out;
+}
+
+/* connection status indicator */
+.connection-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.connection-status.connected {
+    background: rgba(52, 199, 89, 0.15);
+    color: #34c759;
+}
+
+.connection-status.disconnected {
+    background: rgba(255, 59, 48, 0.15);
+    color: #ff3b30;
 }
 
 /* chart tweaks */
 .recharts-brush text {
     font-size: 0.7rem;
     fill: #8e8e93;
+}
+
+/* chart container */
+.chart-container {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-top: 1rem;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.75rem;
+    flex-shrink: 0;
+    gap: 1rem;
+}
+
+.chart-header h3 {
+    margin: 0;
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.chart-controls {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.btn-secondary {
+    padding: 0.4rem 0.8rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    background: transparent;
+    color: #8e8e93;
+    cursor: pointer;
+    font-size: 0.75rem;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.btn-secondary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.btn-secondary.active {
+    background: #0a84ff;
+    color: #fff;
+    border-color: #0a84ff;
 }
