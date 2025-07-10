@@ -71,6 +71,46 @@ services:
             - ./data/rabbit:/var/lib/rabbitmq
         networks: [trading-network]
 
+    # ───────── PostgreSQL ─────────
+    postgres:
+        image: postgres:15
+        container_name: postgres
+        ports: ['5432:5432']
+        environment:
+            POSTGRES_DB: tradingmvp
+            POSTGRES_USER: trading
+            POSTGRES_PASSWORD: ${DB_PASSWORD}
+        healthcheck:
+            test: ['CMD-SHELL', 'pg_isready -U trading -d tradingmvp']
+            interval: 10s
+            retries: 5
+        volumes:
+            - ./data/postgres/pgdata:/var/lib/postgresql/data
+        networks: [trading-network]
+
+    # ───────── Auth (Authentication) ─────────
+    auth:
+        build:
+            context: ./src
+            dockerfile: Auth/Dockerfile
+        image: auth:local
+        container_name: auth
+        ports: ['8082:8082']
+        environment:
+            ASPNETCORE_URLS: http://+:8082
+            ASPNETCORE_ENVIRONMENT: Development
+            ConnectionStrings__DefaultConnection: 'Host=postgres;Port=5432;Database=tradingmvp;Username=trading;Password=${DB_PASSWORD}'
+            Google__ClientId: '${GOOGLE_CLIENT_ID}'
+            Google__ClientSecret: '${GOOGLE_CLIENT_SECRET}'
+        healthcheck:
+            test: ['CMD', 'curl', '-fs', 'http://localhost:8082/healthz']
+            interval: 30s
+            retries: 3
+        depends_on:
+            postgres:
+                condition: service_healthy
+        networks: [trading-network]
+
     # ───────── Gateway (SignalR) ─────────
     gateway:
         build:
