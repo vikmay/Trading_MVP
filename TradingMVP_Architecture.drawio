@@ -1,0 +1,293 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2025-06-24T00:00:00.000Z" agent="draw.io" etag="trading-mvp-arch" version="24.0.0" type="device">
+  <diagram name="Trading MVP Architecture" id="trading-mvp-architecture">
+    <mxGraphModel dx="2074" dy="1196" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- Title -->
+        <mxCell id="title" value="Trading MVP - Microservices Architecture" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=24;fontStyle=1;fontColor=#1f4e79;" vertex="1" parent="1">
+          <mxGeometry x="627" y="20" width="400" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- Legend -->
+        <mxCell id="legend-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8f9fa;strokeColor=#dee2e6;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="20" y="80" width="200" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-title" value="Legend" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="70" y="90" width="100" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-frontend" value="Frontend" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="30" y="130" width="80" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-api" value="API Service" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="130" y="130" width="80" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-worker" value="Worker Service" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="30" y="160" width="80" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-database" value="Database" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="130" y="160" width="80" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-queue" value="Message Queue" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="30" y="190" width="80" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-external" value="External API" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="130" y="190" width="80" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-mgmt" value="Management UI" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="30" y="220" width="80" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- User/Browser Layer -->
+        <mxCell id="user" value="👤 User" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="100" y="350" width="30" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Frontend Layer -->
+        <mxCell id="webui" value="React WebUI&#xa;(Port 80)&#xa;&#xa;• Authentication&#xa;• Real-time Chart&#xa;• Market Data Display&#xa;• SignalR Client" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=center;verticalAlign=middle;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="280" y="320" width="160" height="120" as="geometry" />
+        </mxCell>
+
+        <!-- API Gateway Layer -->
+        <mxCell id="gateway" value="Gateway Service&#xa;(Port 8080)&#xa;&#xa;• SignalR Hub&#xa;• JWT Authentication&#xa;• Real-time Broadcasting&#xa;• Market Data Hub" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=center;verticalAlign=middle;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="580" y="320" width="160" height="120" as="geometry" />
+        </mxCell>
+
+        <!-- Authentication Service -->
+        <mxCell id="auth" value="Auth Service&#xa;(Port 8082)&#xa;&#xa;• User Registration&#xa;• JWT Token Issue&#xa;• Password Validation&#xa;• Role Management" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=center;verticalAlign=middle;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="580" y="480" width="160" height="120" as="geometry" />
+        </mxCell>
+
+        <!-- Data Processing Pipeline -->
+        <mxCell id="exchange-stub" value="Exchange Stub&#xa;(Port 7001)&#xa;&#xa;• Mock Market Data&#xa;• WebSocket Server&#xa;• BTCUSDT Simulation&#xa;• Health Checks" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;align=center;verticalAlign=middle;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="280" y="680" width="160" height="120" as="geometry" />
+        </mxCell>
+
+        <mxCell id="collector" value="Collector Service&#xa;(Background)&#xa;&#xa;• WebSocket Client&#xa;• Raw Data Collection&#xa;• Kafka Producer&#xa;• Exchange Connection" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=center;verticalAlign=middle;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="580" y="680" width="160" height="120" as="geometry" />
+        </mxCell>
+
+        <mxCell id="normaliser" value="Normaliser Service&#xa;(Background)&#xa;&#xa;• Data Transformation&#xa;• Format Standardization&#xa;• Kafka Consumer/Producer&#xa;• Data Enrichment" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=center;verticalAlign=middle;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="880" y="680" width="160" height="120" as="geometry" />
+        </mxCell>
+
+        <mxCell id="bridge" value="Bridge Service&#xa;(Port 8083)&#xa;&#xa;• Kafka to RabbitMQ&#xa;• Message Translation&#xa;• Protocol Bridge&#xa;• Queue Management" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=center;verticalAlign=middle;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1180" y="680" width="160" height="120" as="geometry" />
+        </mxCell>
+
+        <!-- Message Queues -->
+        <mxCell id="kafka" value="Apache Kafka&#xa;(Port 9092)&#xa;&#xa;Topics:&#xa;• ticks.raw&#xa;• ticks.norm&#xa;&#xa;+ Zookeeper (2181)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;align=center;verticalAlign=middle;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="880" y="480" width="160" height="120" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rabbitmq" value="RabbitMQ&#xa;(Port 5674)&#xa;&#xa;Exchange:&#xa;• market-data&#xa;&#xa;Management UI:&#xa;Port 15674" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;align=center;verticalAlign=middle;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1180" y="480" width="160" height="120" as="geometry" />
+        </mxCell>
+
+        <!-- Databases -->
+        <mxCell id="postgres" value="PostgreSQL&#xa;(Port 5432)&#xa;&#xa;Database: tradingmvp&#xa;• AspNetUsers&#xa;• AspNetRoles&#xa;• AspNetUserRoles&#xa;+ Identity Tables" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;align=center;verticalAlign=middle;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="280" y="480" width="160" height="120" as="geometry" />
+        </mxCell>
+
+        <!-- Management UIs -->
+        <mxCell id="pgadmin" value="pgAdmin&#xa;(Port 5050)&#xa;&#xa;• PostgreSQL Management&#xa;• Query Interface&#xa;• Database Browser&#xa;• User Management" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=center;verticalAlign=middle;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="480" width="160" height="120" as="geometry" />
+        </mxCell>
+
+        <mxCell id="kafdrop" value="Kafdrop&#xa;(Port 9000)&#xa;&#xa;• Kafka Topic Browser&#xa;• Message Inspection&#xa;• Consumer Groups&#xa;• Partition Details" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=center;verticalAlign=middle;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1080" y="320" width="160" height="120" as="geometry" />
+        </mxCell>
+
+        <!-- Data Flow Arrows -->
+        
+        <!-- User to WebUI -->
+        <mxCell id="" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#1f4e79;strokeWidth=2;" edge="1" parent="1" source="user" target="webui">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="150" y="380" as="sourcePoint" />
+            <mxPoint x="250" y="380" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="" value="HTTPS" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;fontColor=#1f4e79;" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="190" y="360" as="geometry" />
+        </mxCell>
+
+        <!-- WebUI to Gateway (SignalR) -->
+        <mxCell id="" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#2e7d32;strokeWidth=2;" edge="1" parent="1" source="webui" target="gateway">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="440" y="380" as="sourcePoint" />
+            <mxPoint x="580" y="380" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="" value="SignalR Hub&#xa;WebSocket" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;fontColor=#2e7d32;" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="480" y="370" as="geometry" />
+        </mxCell>
+
+        <!-- WebUI to Auth -->
+        <mxCell id="" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#ad6800;strokeWidth=2;" edge="1" parent="1" source="webui" target="auth">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="440" y="440" as="sourcePoint" />
+            <mxPoint x="580" y="520" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="" value="REST API&#xa;Login/Register" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;fontColor=#ad6800;" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="480" y="470" as="geometry" />
+        </mxCell>
+
+        <!-- Gateway to RabbitMQ -->
+        <mxCell id="" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#c62828;strokeWidth=2;" edge="1" parent="1" source="gateway" target="rabbitmq">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="740" y="400" as="sourcePoint" />
+            <mxPoint x="1180" y="520" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="" value="AMQP&#xa;market-data" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;fontColor=#c62828;" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="950" y="410" as="geometry" />
+        </mxCell>
+
+        <!-- Auth to PostgreSQL -->
+        <mxCell id="" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#6a1b9a;strokeWidth=2;" edge="1" parent="1" source="auth" target="postgres">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="580" y="540" as="sourcePoint" />
+            <mxPoint x="440" y="540" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="" value="Entity Framework&#xa;User Storage" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;fontColor=#6a1b9a;" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="480" y="530" as="geometry" />
+        </mxCell>
+
+        <!-- Data Pipeline Flow -->
+        
+        <!-- Exchange Stub to Collector -->
+        <mxCell id="" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#f57f17;strokeWidth=3;" edge="1" parent="1" source="exchange-stub" target="collector">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="440" y="740" as="sourcePoint" />
+            <mxPoint x="580" y="740" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="" value="WebSocket&#xa;Market Data Stream" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;fontColor=#f57f17;fontStyle=1;" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="480" y="730" as="geometry" />
+        </mxCell>
+
+        <!-- Collector to Kafka -->
+        <mxCell id="" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#f57f17;strokeWidth=3;" edge="1" parent="1" source="collector" target="kafka">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="740" y="720" as="sourcePoint" />
+            <mxPoint x="880" y="600" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="" value="ticks.raw&#xa;Raw Data" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;fontColor=#f57f17;fontStyle=1;" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="780" y="650" as="geometry" />
+        </mxCell>
+
+        <!-- Kafka to Normaliser -->
+        <mxCell id="" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#f57f17;strokeWidth=3;" edge="1" parent="1" source="kafka" target="normaliser">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="960" y="600" as="sourcePoint" />
+            <mxPoint x="960" y="680" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="" value="ticks.raw&#xa;Consumer" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;fontColor=#f57f17;fontStyle=1;" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="980" y="630" as="geometry" />
+        </mxCell>
+
+        <!-- Normaliser back to Kafka -->
+        <mxCell id="" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#f57f17;strokeWidth=3;" edge="1" parent="1" source="normaliser" target="kafka">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="960" y="680" as="sourcePoint" />
+            <mxPoint x="960" y="600" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="" value="ticks.norm&#xa;Processed Data" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;fontColor=#f57f17;fontStyle=1;" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="1080" y="630" as="geometry" />
+        </mxCell>
+
+        <!-- Kafka to Bridge -->
+        <mxCell id="" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#f57f17;strokeWidth=3;" edge="1" parent="1" source="kafka" target="bridge">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="1040" y="600" as="sourcePoint" />
+            <mxPoint x="1180" y="680" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="" value="ticks.norm&#xa;Consumer" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;fontColor=#f57f17;fontStyle=1;" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="1080" y="650" as="geometry" />
+        </mxCell>
+
+        <!-- Bridge to RabbitMQ -->
+        <mxCell id="" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#f57f17;strokeWidth=3;" edge="1" parent="1" source="bridge" target="rabbitmq">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="1260" y="680" as="sourcePoint" />
+            <mxPoint x="1260" y="600" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="" value="market-data&#xa;Exchange" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;fontColor=#f57f17;fontStyle=1;" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="1280" y="630" as="geometry" />
+        </mxCell>
+
+        <!-- Management connections -->
+        
+        <!-- pgAdmin to PostgreSQL -->
+        <mxCell id="" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#666666;strokeWidth=1;dashed=1;" edge="1" parent="1" source="pgadmin" target="postgres">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="240" y="540" as="sourcePoint" />
+            <mxPoint x="280" y="540" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="" value="Management" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;fontColor=#666666;" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="250" y="520" as="geometry" />
+        </mxCell>
+
+        <!-- Kafdrop to Kafka -->
+        <mxCell id="" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#666666;strokeWidth=1;dashed=1;" edge="1" parent="1" source="kafdrop" target="kafka">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="1160" y="440" as="sourcePoint" />
+            <mxPoint x="1040" y="500" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="" value="Monitoring" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;fontColor=#666666;" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="1100" y="450" as="geometry" />
+        </mxCell>
+
+        <!-- Docker Network -->
+        <mxCell id="docker-network" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#1565c0;strokeWidth=3;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="300" width="1300" height="520" as="geometry" />
+        </mxCell>
+        <mxCell id="network-label" value="Docker Network: trading-network" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=bottom;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=1;fontColor=#1565c0;" vertex="1" parent="1">
+          <mxGeometry x="70" y="800" width="250" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- Port Information Box -->
+        <mxCell id="ports-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8f9fa;strokeColor=#dee2e6;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="1400" y="80" width="220" height="400" as="geometry" />
+        </mxCell>
+        <mxCell id="ports-title" value="External Ports" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1450" y="90" width="120" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="ports-content" value="🌐 WebUI: 80&#xa;🔐 Auth: 8082&#xa;🚪 Gateway: 8080&#xa;🌉 Bridge: 8083&#xa;📊 Exchange: 7001&#xa;&#xa;📚 PostgreSQL: 5432&#xa;🐰 RabbitMQ: 5674&#xa;📨 Kafka: 9092&#xa;🔍 Zookeeper: 2181&#xa;&#xa;🛠️ pgAdmin: 5050&#xa;📈 Kafdrop: 9000&#xa;🔧 RabbitMQ UI: 15674" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=11;fontFamily=monospace;" vertex="1" parent="1">
+          <mxGeometry x="1410" y="130" width="200" height="340" as="geometry" />
+        </mxCell>
+
+        <!-- Technologies Box -->
+        <mxCell id="tech-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8f9fa;strokeColor=#dee2e6;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="1400" y="500" width="220" height="320" as="geometry" />
+        </mxCell>
+        <mxCell id="tech-title" value="Technologies" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1450" y="510" width="120" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="tech-content" value="⚡ React + Vite&#xa;🔗 SignalR&#xa;🎯 ASP.NET Core 8&#xa;📊 Entity Framework&#xa;🔐 JWT Authentication&#xa;🐘 PostgreSQL 15&#xa;🚀 Apache Kafka&#xa;🐰 RabbitMQ&#xa;🐳 Docker Compose&#xa;📈 Chart.js&#xa;🎨 CSS3 Animations&#xa;🔧 Nginx&#xa;💾 Persistent Volumes" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1410" y="550" width="200" height="260" as="geometry" />
+        </mxCell>
+
+        <!-- Data Flow Legend -->
+        <mxCell id="flow-legend" value="Data Flow:" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;fontColor=#f57f17;" vertex="1" parent="1">
+          <mxGeometry x="70" y="860" width="100" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-description" value="1️⃣ Exchange generates market data → 2️⃣ Collector ingests via WebSocket → 3️⃣ Raw data to Kafka → 4️⃣ Normaliser processes → 5️⃣ Normalized data to Kafka → 6️⃣ Bridge forwards to RabbitMQ → 7️⃣ Gateway broadcasts via SignalR → 8️⃣ WebUI displays real-time chart" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#f57f17;" vertex="1" parent="1">
+          <mxGeometry x="70" y="890" width="1290" height="60" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -1,38 +1,121 @@
-using Gateway.Hubs;                       // <— your hub namespace
-using Gateway.Workers;                    // <— the RabbitMQ worker
+using Gateway.Hubs;
+using Gateway.Workers;
 using Gateway.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
+using System.Text;
+using System.Linq;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1️⃣  Tell ASP.NET about the front-end origins
+// JWT Authentication
+var jwtSecret = builder.Configuration["Jwt:Secret"] ?? "TradingMvpSuperSecretKeyForJWTTokenGeneration2024!";
+var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "TradingMvpAuth";
+var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "TradingMvpClient";
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtSecret)),
+        ValidateIssuer = true,
+        ValidIssuer = jwtIssuer,
+        ValidateAudience = true,
+        ValidAudience = jwtAudience,
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.Zero
+    };    // Handle JWT in SignalR
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"];
+            var path = context.HttpContext.Request.Path;
+
+            // Log the attempt
+            var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+            logger.LogInformation("OnMessageReceived: Path={Path}, TokenPresent={TokenPresent}", path, !string.IsNullOrEmpty(accessToken));
+
+            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hub"))
+            {
+                context.Token = accessToken;
+                logger.LogInformation("JWT Token set from query string for SignalR connection");
+            }
+            return Task.CompletedTask;
+        },
+        OnTokenValidated = context =>
+        {
+            // Log successful token validation
+            var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+            var userId = context.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var email = context.Principal?.FindFirst(ClaimTypes.Email)?.Value;
+            logger.LogInformation("JWT Token validated for user: {UserId}, Email: {Email}", userId, email);
+            return Task.CompletedTask;
+        },
+        OnAuthenticationFailed = context =>
+        {
+            // Log authentication failures
+            var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+            logger.LogError("JWT Authentication failed: {Error}", context.Exception.Message);
+            return Task.CompletedTask;
+        }
+    };
+});
+
+builder.Services.AddAuthorization();
+
+// CORS configuration
 builder.Services.AddCors(opts =>
 {
     opts.AddPolicy("CorsPolicy", cors =>
     {
         cors
             .WithOrigins(
-                "http://localhost",     // nginx / vite / dev server
-                "http://localhost:80")  // explicit port, just to be safe
+                "http://localhost",
+                "http://localhost:80",
+                "http://localhost:5173") // Vite dev server
             .AllowAnyHeader()
             .AllowAnyMethod()
-            .AllowCredentials();       // required by SignalR
+            .AllowCredentials();
     });
 });
 
-builder.Services.AddSignalR();          // or AddSignalR().AddJsonProtocol() …
-
+builder.Services.AddSignalR();
 builder.Services.AddSingleton<IPriceCache, PriceCache>();
-
-// … the rest of your services …
 builder.Services.AddHostedService<GatewayWorker>();
+
 var app = builder.Build();
 
-// 2️⃣  Pipeline order matters!
+// Middleware pipeline - order is critical!
 app.UseRouting();
-app.UseCors("CorsPolicy");              // ⬅ MUST be *after* UseRouting and *before* MapHub
-// app.UseAuthentication();             // if you have it
-// app.UseAuthorization();
+app.UseCors("CorsPolicy");
+app.UseAuthentication();
+app.UseAuthorization();
 
-app.MapHub<MarketHub>("/hub/market");   // SignalR endpoint
+app.MapHub<MarketHub>("/hub/market");
+
+// Test endpoint to verify JWT authentication
+app.MapGet("/api/test", (HttpContext context) =>
+{
+    var user = context.User;
+    var isAuthenticated = user?.Identity?.IsAuthenticated ?? false;
+    var userId = user?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    var email = user?.FindFirst(ClaimTypes.Email)?.Value;
+
+    return new
+    {
+        IsAuthenticated = isAuthenticated,
+        UserId = userId,
+        Email = email,
+        Claims = user?.Claims?.Select(c => new { c.Type, c.Value }).ToArray()
+    };
+}).RequireAuthorization();
 
 app.Run();

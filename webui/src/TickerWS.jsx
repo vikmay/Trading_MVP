@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import * as signalR from '@microsoft/signalr';
 import PriceChart from './PriceChart';
+import { useAuth } from './useAuth';
 import './TickerWS.css';
 
 export default function TickerWS() {
@@ -14,11 +15,14 @@ export default function TickerWS() {
     const [error, setError] = useState(null);
     const [paused, setPaused] = useState(false);
     const [autoScroll, setAutoScroll] = useState(true); // false after manual pan
+    const [userInfo, setUserInfo] = useState(null);
 
     const lastSeqRef = useRef(0);
     const lastBidRef = useRef(null);
     const [flashBid, setFlashBid] = useState('');
     const [flashAsk, setFlashAsk] = useState('');
+
+    const { token, isAuthenticated } = useAuth();
 
     /* ───────── helpers ───────── */
     const fmt = (n) =>
@@ -51,14 +55,24 @@ export default function TickerWS() {
             if (!paused) setTick(dto);
         },
         [paused]
-    );
-
-    /* ───────── SignalR wiring ───────── */
+    ); /* ───────── SignalR wiring ───────── */
     useEffect(() => {
-        const hub = new signalR.HubConnectionBuilder()
-            .withUrl('http://localhost:8080/hub/market')
-            .withAutomaticReconnect()
-            .build();
+        const signalRUrl =
+            import.meta.env.VITE_SIGNALR_URL ||
+            'http://localhost:8080/hub/market';
+
+        // Build the URL with token as query parameter if available
+        const urlWithToken = token
+            ? `${signalRUrl}?access_token=${token}`
+            : signalRUrl;
+
+        const hubBuilder = new signalR.HubConnectionBuilder()
+            .withUrl(urlWithToken, {
+                accessTokenFactory: () => token || '',
+            })
+            .withAutomaticReconnect();
+
+        const hub = hubBuilder.build();
 
         const subscribeFrom = async () => {
             try {
@@ -76,12 +90,39 @@ export default function TickerWS() {
             }
         };
 
+        const getUserInfo = async () => {
+            if (isAuthenticated) {
+                try {
+                    const info = await hub.invoke('GetUserInfo');
+                    setUserInfo(info);
+                } catch (err) {
+                    console.warn('GetUserInfo failed', err);
+                }
+            }
+        };
+
+        const joinUserGroup = async () => {
+            if (isAuthenticated) {
+                try {
+                    await hub.invoke('JoinUserGroup');
+                    console.log('Joined user-specific group');
+                } catch (err) {
+                    console.warn('JoinUserGroup failed', err);
+                }
+            }
+        };
         const start = async () => {
             try {
+                console.log(
+                    'Starting SignalR connection with token:',
+                    token ? 'Present' : 'Missing'
+                );
                 await hub.start();
                 setConnected(true);
                 setError(null);
                 subscribeFrom();
+                getUserInfo();
+                joinUserGroup();
             } catch (err) {
                 console.error('Hub connection failed', err);
                 setConnected(false);
@@ -97,6 +138,8 @@ export default function TickerWS() {
         hub.onreconnected(() => {
             setConnected(true);
             subscribeFrom();
+            getUserInfo();
+            joinUserGroup();
         });
         hub.onclose(() => {
             setConnected(false);
@@ -105,7 +148,7 @@ export default function TickerWS() {
 
         start();
         return () => void hub.stop();
-    }, [pushPoint]);
+    }, [pushPoint, token, isAuthenticated]);
 
     /* ───────── flash numbers only ───────── */
     useEffect(() => {
@@ -134,6 +177,7 @@ export default function TickerWS() {
     }; /* ───────── render ───────── */
     return (
         <div className="ticker">
+            {' '}
             {/* ─── status bar & controls ──────────────────────────────── */}
             <div className="status-bar">
                 <div
@@ -144,6 +188,18 @@ export default function TickerWS() {
                     {connected ? '🟢 Connected' : '🔴 Disconnected'}
                     {!connected && ' - reconnecting...'}
                 </div>
+
+                {isAuthenticated && userInfo && (
+                    <div className="connection-status connected">
+                        👤 {userInfo.userId} (authenticated)
+                    </div>
+                )}
+
+                {!isAuthenticated && (
+                    <div className="connection-status disconnected">
+                        👤 Anonymous (not authenticated)
+                    </div>
+                )}
 
                 {error && <div className="error-banner">⚠️ {error}</div>}
 
@@ -157,7 +213,6 @@ export default function TickerWS() {
                     </div>
                 )}
             </div>
-
             {/* ─── price table ─────────────────────────────────────────── */}
             {tick && (
                 <div className="ticker-data">
@@ -195,7 +250,6 @@ export default function TickerWS() {
                     </div>
                 </div>
             )}
-
             {/* ─── price chart ─────────────────────────────────────────── */}
             <div className="chart-container">
                 {' '}
