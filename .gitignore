@@ -1,0 +1,256 @@
+# ═══════════════════════════════════════════════════════════
+# Trading MVP - Comprehensive .gitignore
+# ═══════════════════════════════════════════════════════════
+
+# ───────── Environment & Secrets ─────────
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+*.p12
+*.pfx
+appsettings.*.json
+!appsettings.json
+!appsettings.Development.json
+
+# ───────── Build Outputs ─────────
+bin/
+obj/
+out/
+build/
+dist/
+*.dll
+*.exe
+*.pdb
+*.mdb
+*.so
+*.dylib
+*.user
+*.suo
+*.cache
+*.log
+build.log
+
+# ───────── Docker & Runtime Data ─────────
+data/
+logs/
+volumes/
+.docker/
+docker-compose.override.yml
+
+# ───────── Database Files ─────────
+*.db
+*.sqlite
+*.sqlite3
+*.mdf
+*.ldf
+
+# ───────── IDE & Editor Files ─────────
+.vs/
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.sln.iml
+*.user
+*.rsuser
+*.suo
+*.userosscache
+*.sln.docstates
+
+# ───────── OS Generated Files ─────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# ───────── Node.js (for WebUI) ─────────
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.yarn-integrity
+.pnp.*
+
+# ───────── Package Files ─────────
+packages/
+*.nupkg
+*.snupkg
+
+# ───────── Test Results ─────────
+TestResults/
+coverage/
+*.trx
+*.coverage
+*.coveragexml
+
+# ───────── Temporary Files ─────────
+tmp/
+temp/
+*.tmp
+*.temp
+*.swp
+*.bak
+*~
+
+# ───────── JetBrains ─────────
+.idea/
+*.sln.iml
+
+# ───────── Visual Studio Code ─────────
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# ───────── Rider ─────────
+.idea/
+*.sln.iml
+
+# ───────── ASP.NET Core ─────────
+project.lock.json
+project.fragment.lock.json
+artifacts/
+**/Properties/launchSettings.json
+
+# ───────── Entity Framework ─────────
+*.edmx.diagram
+*.edmx.sql
+
+# ───────── Resharper ─────────
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
+# ───────── TeamCity ─────────
+_TeamCity*
+
+# ───────── DotCover ─────────
+*.dotCover
+
+# ───────── NCrunch ─────────
+_NCrunch_*
+.*crunch*.local.xml
+nCrunchTemp_*
+
+# ───────── MightyMoose ─────────
+*.mm.*
+AutoTest.Net/
+
+# ───────── Web Workbench ─────────
+.sass-cache/
+
+# ───────── Installshield ─────────
+[Ee]xpress/
+
+# ───────── DocProject ─────────
+DocProject/buildhelp/
+DocProject/Help/*.HxT
+DocProject/Help/*.HxC
+DocProject/Help/*.hhc
+DocProject/Help/*.hhk
+DocProject/Help/*.hhp
+DocProject/Help/Html2
+DocProject/Help/html
+
+# ───────── Click-Once ─────────
+publish/
+
+# ───────── Publish Web Output ─────────
+*.[Pp]ublish.xml
+*.azurePubxml
+*.pubxml
+*.publishproj
+
+# ───────── Microsoft Azure Web App ─────────
+PublishScripts/
+
+# ───────── NuGet Packages ─────────
+*.nupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+!**/[Pp]ackages/repositories.config
+
+# ───────── Windows Azure Build Output ─────────
+csx/
+*.build.csdef
+
+# ───────── Windows Azure Emulator ─────────
+ecf/
+rcf/
+
+# ───────── Windows Store app package directories ─────────
+AppPackages/
+BundleArtifacts/
+Package.StoreAssociation.xml
+_pkginfo.txt
+*.appx
+*.appxbundle
+*.appxupload
+
+# ───────── Visual Studio cache ─────────
+*.suo
+*.cache
+*.docstates
+
+# ───────── Others ─────────
+ClientBin/
+~$*
+*~
+*.dbmdl
+*.dbproj.schemaview
+*.jfm
+*.pfx
+*.publishsettings
+orleans.codegen.cs
+
+# ───────── Including strong name files ─────────
+*.snk
+
+# ───────── Since there are multiple workflows ─────────
+*.nuget.props
+*.nuget.targets
+
+# ───────── BizTalk build output ─────────
+*.btp.cs
+*.btm.cs
+*.odx.cs
+*.xsd.cs
+
+# ───────── OpenCover UI analysis results ─────────
+OpenCover/
+
+# ───────── Azure Stream Analytics local run output ─────────
+ASALocalRun/
+
+# ───────── MSBuild Binary and Structured Log ─────────
+*.binlog
+
+# ───────── NVidia Nsight GPU debugger ─────────
+*.nvuser
+
+# ───────── MFractors (Xamarin productivity tool) ─────────
+.mfractor/
+
+# ───────── Local History for Visual Studio ─────────
+.localhistory/
+
+# ───────── BeatPulse healthcheck temp database ─────────
+healthchecksdb
+
+# ───────── Backup folder for Package Reference Convert tool ─────────
+MigrationBackup/
+
+# ───────── Ionide (cross platform F# VS Code tools) ─────────
+.ionide/
