@@ -1,3 +1,20 @@
 {
-    "liveServer.settings.port": 5876
+    "liveServer.settings.port": 5876,
+    "files.exclude": {
+        "data/": true,
+        "**/data/": true
+    },
+    "search.exclude": {
+        "data/": true,
+        "**/data/": true
+    },
+    "git.ignoreLimitWarning": true,
+    "scm.defaultViewMode": "tree",
+    "files.watcherExclude": {
+        "data/**": true
+    },
+    "git.decorations.enabled": false,
+    "scm.showIncomingChanges": "never",
+    "scm.showOutgoingChanges": "never",
+    "git.untrackedChanges": "hidden"
 }
