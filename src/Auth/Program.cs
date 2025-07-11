@@ -6,6 +6,7 @@ using System.Text;
 using Auth.Data;
 using Auth.Models;
 using Auth.Services;
+using OpenIddict.Validation.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,13 +21,19 @@ if (string.IsNullOrEmpty(connectionString))
 {
     // Fallback to in-memory database for development
     builder.Services.AddDbContext<AuthDbContext>(options =>
-        options.UseInMemoryDatabase("AuthDb"));
+    {
+        options.UseInMemoryDatabase("AuthDb");
+        options.UseOpenIddict();
+    });
 }
 else
 {
     // Use PostgreSQL
     builder.Services.AddDbContext<AuthDbContext>(options =>
-        options.UseNpgsql(connectionString));
+    {
+        options.UseNpgsql(connectionString);
+        options.UseOpenIddict();
+    });
 }
 
 // Identity
@@ -46,35 +53,88 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 .AddEntityFrameworkStores<AuthDbContext>()
 .AddDefaultTokenProviders();
 
-// JWT Authentication
-var jwtSecret = builder.Configuration["Jwt:Secret"] ?? "TradingMvpSuperSecretKeyForJWTTokenGeneration2024!";
-var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "TradingMvpAuth";
-var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "TradingMvpClient";
-
-builder.Services.AddAuthentication(options =>
+// Configure Identity to use cookies
+builder.Services.ConfigureApplicationCookie(options =>
 {
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtSecret)),
-        ValidateIssuer = true,
-        ValidIssuer = jwtIssuer,
-        ValidateAudience = true,
-        ValidAudience = jwtAudience,
-        ValidateLifetime = true,
-        ClockSkew = TimeSpan.Zero
-    };
+    options.LoginPath = "/account/login";
+    options.LogoutPath = "/account/logout";
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(50);
 });
+
+// Add Google Authentication
+var googleClientId = builder.Configuration["Google:ClientId"] ?? Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID");
+var googleClientSecret = builder.Configuration["Google:ClientSecret"] ?? Environment.GetEnvironmentVariable("GOOGLE_CLIENT_SECRET");
+
+if (!string.IsNullOrEmpty(googleClientId) && !string.IsNullOrEmpty(googleClientSecret))
+{
+    builder.Services.AddAuthentication()
+        .AddGoogle(options =>
+        {
+            options.ClientId = googleClientId;
+            options.ClientSecret = googleClientSecret;
+            options.CallbackPath = "/signin-google";
+        });
+}
+
+// OpenIddict
+builder.Services.AddOpenIddict()
+    // Register the OpenIddict core components.
+    .AddCore(options =>
+    {
+        // Configure OpenIddict to use the Entity Framework Core stores and models.
+        options.UseEntityFrameworkCore()
+               .UseDbContext<AuthDbContext>();
+    })
+    // Register the OpenIddict server components.
+    .AddServer(options =>
+    {
+        // Enable the authorization, logout, token and userinfo endpoints.
+        options.SetAuthorizationEndpointUris("/connect/authorize")
+               .SetLogoutEndpointUris("/connect/logout")
+               .SetTokenEndpointUris("/connect/token")
+               .SetUserinfoEndpointUris("/connect/userinfo");
+
+        // Mark the "email", "profile" and "roles" scopes as supported scopes.
+        options.RegisterScopes(OpenIddict.Abstractions.OpenIddictConstants.Scopes.Email,
+                               OpenIddict.Abstractions.OpenIddictConstants.Scopes.Profile,
+                               OpenIddict.Abstractions.OpenIddictConstants.Scopes.Roles,
+                               "trading-api");
+
+        // Note: this sample only uses the authorization code flow but you can enable
+        // the other flows if you need to support implicit, password or client credentials.
+        options.AllowAuthorizationCodeFlow()
+               .AllowRefreshTokenFlow();
+
+        // Register the signing and encryption credentials.
+        options.AddDevelopmentEncryptionCertificate()
+               .AddDevelopmentSigningCertificate();
+
+        // Register the ASP.NET Core host and configure the ASP.NET Core-specific options.
+        options.UseAspNetCore()
+               .EnableAuthorizationEndpointPassthrough()
+               .EnableLogoutEndpointPassthrough()
+               .EnableTokenEndpointPassthrough()
+               .EnableUserinfoEndpointPassthrough()
+               .EnableStatusCodePagesIntegration();
+    })
+    // Register the OpenIddict validation components.
+    .AddValidation(options =>
+    {
+        // Import the configuration from the local OpenIddict server instance.
+        options.UseLocalServer();
+
+        // Register the ASP.NET Core host.
+        options.UseAspNetCore();
+    });
+
+// Register the worker responsible for seeding the database.
+builder.Services.AddHostedService<OpenIddictInitializer>();
+builder.Services.AddHostedService<DatabaseInitializerService>();
 
 // CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("CorsPolicy", cors =>
+    options.AddPolicy("AllowWebUI", cors =>
     {
         cors.WithOrigins(
                 "http://localhost",
@@ -87,8 +147,6 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Custom services
-builder.Services.AddScoped<ITokenService, TokenService>();
 
 var app = builder.Build();
 
@@ -133,7 +191,7 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-app.UseCors("CorsPolicy");
+app.UseCors("AllowWebUI");
 app.UseAuthentication();
 app.UseAuthorization();
 
