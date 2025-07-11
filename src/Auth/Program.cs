@@ -1,12 +1,9 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Auth.Data;
 using Auth.Models;
 using Auth.Services;
-using OpenIddict.Validation.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -61,21 +58,6 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.ExpireTimeSpan = TimeSpan.FromMinutes(50);
 });
 
-// Add Google Authentication
-var googleClientId = builder.Configuration["Google:ClientId"] ?? Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID");
-var googleClientSecret = builder.Configuration["Google:ClientSecret"] ?? Environment.GetEnvironmentVariable("GOOGLE_CLIENT_SECRET");
-
-if (!string.IsNullOrEmpty(googleClientId) && !string.IsNullOrEmpty(googleClientSecret))
-{
-    builder.Services.AddAuthentication()
-        .AddGoogle(options =>
-        {
-            options.ClientId = googleClientId;
-            options.ClientSecret = googleClientSecret;
-            options.CallbackPath = "/signin-google";
-        });
-}
-
 // OpenIddict
 builder.Services.AddOpenIddict()
     // Register the OpenIddict core components.
@@ -127,9 +109,11 @@ builder.Services.AddOpenIddict()
         options.UseAspNetCore();
     });
 
+// Register services
+builder.Services.AddScoped<ITokenService, TokenService>();
+
 // Register the worker responsible for seeding the database.
-builder.Services.AddHostedService<OpenIddictInitializer>();
-builder.Services.AddHostedService<DatabaseInitializerService>();
+builder.Services.AddHostedService<AppInitializer>();
 
 // CORS
 builder.Services.AddCors(options =>
@@ -157,40 +141,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-// Initialize database and seed data
-using (var scope = app.Services.CreateScope())
-{
-    var context = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
-    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-
-    try
-    {
-        // Create database if it doesn't exist
-        await context.Database.EnsureCreatedAsync();
-
-        // Seed roles
-        if (!await roleManager.RoleExistsAsync("Admin"))
-        {
-            await roleManager.CreateAsync(new IdentityRole("Admin"));
-        }
-        if (!await roleManager.RoleExistsAsync("User"))
-        {
-            await roleManager.CreateAsync(new IdentityRole("User"));
-        }
-
-        // Seed users
-        await SeedUsersAsync(userManager);
-
-        Console.WriteLine("✅ Database initialized and seeded successfully!");
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"❌ Error initializing database: {ex.Message}");
-        // Continue startup even if seeding fails
-    }
-}
-
 app.UseCors("AllowWebUI");
 app.UseAuthentication();
 app.UseAuthorization();
@@ -201,41 +151,3 @@ app.MapControllers();
 app.MapGet("/healthz", () => Results.Ok(new { Status = "Healthy", Service = "Auth", Timestamp = DateTime.UtcNow }));
 
 app.Run();
-
-// Helper method to seed users
-static async Task SeedUsersAsync(UserManager<ApplicationUser> userManager)
-{
-    var testUsers = new[]
-    {
-        new { Email = "admin@trading.com", Password = "Admin123!", Role = "Admin", FirstName = "Admin", LastName = "User" },
-        new { Email = "trader@trading.com", Password = "Trader123!", Role = "User", FirstName = "John", LastName = "Trader" },
-        new { Email = "demo@trading.com", Password = "Demo123!", Role = "User", FirstName = "Demo", LastName = "User" }
-    };
-
-    foreach (var testUser in testUsers)
-    {
-        var existingUser = await userManager.FindByEmailAsync(testUser.Email);
-        if (existingUser == null)
-        {
-            var user = new ApplicationUser
-            {
-                UserName = testUser.Email,
-                Email = testUser.Email,
-                EmailConfirmed = true,
-                FirstName = testUser.FirstName,
-                LastName = testUser.LastName
-            };
-
-            var result = await userManager.CreateAsync(user, testUser.Password);
-            if (result.Succeeded)
-            {
-                await userManager.AddToRoleAsync(user, testUser.Role);
-                Console.WriteLine($"✅ Created user: {testUser.Email} with role: {testUser.Role}");
-            }
-            else
-            {
-                Console.WriteLine($"❌ Failed to create user {testUser.Email}: {string.Join(", ", result.Errors.Select(e => e.Description))}");
-            }
-        }
-    }
-}

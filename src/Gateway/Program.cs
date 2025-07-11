@@ -118,4 +118,7 @@ app.MapGet("/api/test", (HttpContext context) =>
     };
 }).RequireAuthorization();
 
+// Health check endpoint
+app.MapGet("/healthz", () => Results.Ok(new { Status = "Healthy", Service = "Gateway", Timestamp = DateTime.UtcNow }));
+
 app.Run();
